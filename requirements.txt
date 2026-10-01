@@ -1,0 +1,7 @@
+numpy
+pillow
+torch
+transformers
+huggingface_hub
+scikit-learn
+pyarrow
