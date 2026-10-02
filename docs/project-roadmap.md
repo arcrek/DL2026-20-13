@@ -10,8 +10,8 @@ Tài liệu này xác định lộ trình nghiên cứu, triển khai và đánh
 
 | Giai đoạn | Nội dung chính | Trọng tâm kỹ thuật | Trạng thái | Executable Owner |
 | :--- | :--- | :--- | :---: | :--- |
-| **Phase 1** | Chuẩn bị & Tiền xử lý dữ liệu | Lọc template leakage, dùng `text_corrected`, chia hold-out | 🔄 Đang triển khai | [`src/data.py`](file:///home/arcrek/workspace/dl2026/src/data.py), [`DATA.md`](file:///home/arcrek/workspace/dl2026/DATA.md) |
-| **Phase 2** | Triển khai 3 mô hình đối chứng | Text-only (BERT), Image-only (ResNet50), Both (Concat & Cross-Attn) | 📋 Sẵn sàng | [`src/finetune.py`](file:///home/arcrek/workspace/dl2026/src/finetune.py) |
+| **Phase 1** | Chuẩn bị & Tiền xử lý dữ liệu | Lọc template leakage, dùng `text_corrected`, chia hold-out | ✅ Hoàn thành | [`src/data.py`](file:///home/arcrek/workspace/dl2026/src/data.py), [`DATA.md`](file:///home/arcrek/workspace/dl2026/DATA.md) |
+| **Phase 2** | Triển khai 3 mô hình đối chứng | Text-only (BERT), Image-only (ResNet50), Both (Concat & Cross-Attn) | 🔄 Đang triển khai | [`src/finetune.py`](file:///home/arcrek/workspace/dl2026/src/finetune.py) |
 | **Phase 3** | Đánh giá, Ablation & Error Analysis | Phân tích Sarcasm, Paired t-test, 20 ca lỗi định tính | ⏳ Chờ Phase 2 | [`plans/20261001-0830-meme-understanding-modality-study/phase-03-analysis.md`](file:///home/arcrek/workspace/dl2026/plans/20261001-0830-meme-understanding-modality-study/phase-03-analysis.md) |
 | **Phase 4** | Báo cáo, Notebook Colab & Nghiệm thu | Báo cáo 10-15 trang chuẩn rubric, demo inference | ⏳ Chờ Phase 3 | [`plans/20261001-0830-meme-understanding-modality-study/phase-04-deliverables.md`](file:///home/arcrek/workspace/dl2026/plans/20261001-0830-meme-understanding-modality-study/phase-04-deliverables.md) |
 
@@ -23,12 +23,12 @@ Tài liệu này xác định lộ trình nghiên cứu, triển khai và đánh
 * **Mục tiêu:** Xây dựng tập dữ liệu sạch, ngăn chặn triệt để hiện tượng rò rỉ meme template.
 * **Nhiệm vụ cụ thể:**
   - [x] Tải và giải nén Memotion 7k từ nguồn chuẩn SemEval-2020 (`Ahren09/MMSoc_Memotion`).
-  - [ ] Khắc phục lỗi của notebook mẫu: Chuyển toàn bộ pipeline trích xuất văn bản từ `text_ocr` sang `text_corrected`.
-  - [ ] Áp dụng thuật toán Union-Find (MD5 ảnh + normalized text) trong [`src/data.py`](file:///home/arcrek/workspace/dl2026/src/data.py) để phân nhóm không để lọt template trùng giữa tập fit và tập hold-out.
-  - [ ] Tính toán trọng số phân bố lớp (`class_weights`) cho 3 nhãn: Negative (~9%), Neutral (~31%), Positive (~59%), theo phân bố thực tế của train (518/1762/3313).
+  - [x] Khắc phục lỗi của notebook mẫu: Chuyển toàn bộ pipeline trích xuất văn bản từ `text_ocr` sang `text_corrected`.
+  - [x] Áp dụng thuật toán Union-Find (MD5 ảnh + normalized text) trong [`src/data.py`](file:///home/arcrek/workspace/dl2026/src/data.py) để phân nhóm không để lọt template trùng giữa tập fit và tập hold-out.
+  - [x] Tính toán trọng số phân bố lớp (`class_weights`) cho 3 nhãn: Negative (~9%), Neutral (~31%), Positive (~59%), theo phân bố thực tế của train (518/1762/3313).
 * **Tiêu chí hoàn thành (Exit Criteria):**
-  - Chạy `pytest tests/test_data.py` vượt qua toàn bộ kiểm thử.
-  - Sinh file phân tách `features/train_holdout.json` hợp lệ.
+  - [x] Chạy `pytest tests/test_data.py` vượt qua toàn bộ kiểm thử.
+  - [x] Sinh file phân tách `features/train_holdout.json` hợp lệ.
 
 ---
 
