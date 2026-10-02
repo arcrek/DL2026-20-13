@@ -69,7 +69,7 @@ for split, files in splits_files.items():
             idx += 1
             raw_sent = str(pydict["sentiment"][i]).strip().lower()
             label = SENTIMENT_MAP.get(raw_sent, 1) # default neutral if unknown
-            text = str(pydict["text_corrected"][i] or pydict["text_ocr"][i] or "").strip()
+            text = str(pydict["text_corrected"][i] or "").strip()
             img_rel_path = f"img/{sample_id}.png"
             img_abs_path = os.path.join(out_dir, img_rel_path)
             

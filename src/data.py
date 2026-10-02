@@ -78,6 +78,13 @@ def make_holdout(rows, frac=HOLDOUT_FRAC, seed=HOLDOUT_SEED, data_dir=None):
     return sorted(i for i in gid if i not in hs), sorted(hold), grouping
 
 
+def class_weights(rows, num_classes=NUM_CLASSES):
+    """Inverse-frequency weights, normalized so that they average to 1 over samples."""
+    counts = Counter(r["label"] for r in rows)
+    n = len(rows)
+    return [n / (num_classes * counts[c]) for c in range(num_classes)]
+
+
 def save_holdout(data_dir=DATA_DIR, out=None):
     out = out or os.path.join(os.environ.get("FEATURE_DIR", "features"), "train_holdout.json")
     rows = load_jsonl("train", data_dir)
@@ -88,6 +95,7 @@ def save_holdout(data_dir=DATA_DIR, out=None):
             "seed": HOLDOUT_SEED,
             "frac": HOLDOUT_FRAC,
             "grouping": grouping,
+            "class_weights": class_weights([r for r in rows if r["id"] in set(fit)]),
             "fit": fit,
             "holdout": hold
         }, f, indent=1)
