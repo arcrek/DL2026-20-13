@@ -1,9 +1,8 @@
 """Fine-tuned models for Memotion 7k sentiment analysis (GPU).
 
-Entry point for 3 modes:
+Entry point for 2 modes:
   python src/finetune.py --mode vit  --seeds 0 1 2   # ViT-B/16, image only
   python src/finetune.py --mode bert --seeds 0 1 2   # BERT-base, text only
-  python src/finetune.py --mode clip --seeds 0 1 2   # CLIP ViT-L/14 + gated fusion, last N blocks unfrozen
 
 Model selection uses train hold-out Macro F1. Validation and test are strictly for evaluation.
 Per run: results/finetune/{mode}_seed{S}.json and results/preds/ft_{mode}_seed{S}.npz
@@ -19,7 +18,7 @@ import torch.nn as nn
 from PIL import Image, ImageFile
 from sklearn.metrics import accuracy_score, f1_score
 from torch.utils.data import DataLoader, Dataset
-from transformers import (AutoModel, AutoTokenizer, CLIPModel, CLIPProcessor, ViTImageProcessor)
+from transformers import (AutoModel, AutoTokenizer, ViTImageProcessor)
 
 from data import DATA_DIR, load_jsonl
 
@@ -32,12 +31,10 @@ NUM_CLASSES = 3
 NAMES = {
     "vit": "google/vit-base-patch16-224-in21k",
     "bert": "bert-base-uncased",
-    "clip": "openai/clip-vit-large-patch14"
 }
 DEFAULTS = {
     "vit": dict(lr=3e-5, lr_head=1e-3, epochs=6, batch=32),
     "bert": dict(lr=3e-5, lr_head=1e-3, epochs=6, batch=32),
-    "clip": dict(lr=1e-5, lr_head=1e-3, epochs=6, batch=32, unfreeze=2),
 }
 
 
@@ -66,9 +63,9 @@ class MemeSet(Dataset):
 
 
 class Net(nn.Module):
-    """Wraps ViT (image), BERT (text), or CLIP (multimodal gated) with a 3-class classification head."""
+    """Wraps ViT (image) or BERT (text) with a 3-class classification head."""
 
-    def __init__(self, mode, unfreeze=2, num_classes=NUM_CLASSES):
+    def __init__(self, mode, num_classes=NUM_CLASSES):
         super().__init__()
         self.mode = mode
         if mode == "vit":
@@ -77,22 +74,6 @@ class Net(nn.Module):
         elif mode == "bert":
             self.enc = AutoModel.from_pretrained(NAMES[mode])
             self.head = nn.Linear(self.enc.config.hidden_size, num_classes)
-        else:
-            self.enc = CLIPModel.from_pretrained(NAMES[mode])
-            for p in self.enc.parameters():
-                p.requires_grad = False
-            for tower, proj in ((self.enc.vision_model, self.enc.visual_projection),
-                                (self.enc.text_model, self.enc.text_projection)):
-                blocks = tower.encoder.layers[-unfreeze:] if unfreeze else []
-                post_ln = getattr(tower, "post_layernorm", None) or tower.final_layer_norm
-                for m in list(blocks) + [proj, post_ln]:
-                    for p in m.parameters():
-                        p.requires_grad = True
-            d = self.enc.config.projection_dim
-            self.pi = nn.Linear(d, 256)
-            self.pt = nn.Linear(d, 256)
-            self.gate = nn.Linear(2 * d, 256)
-            self.head = nn.Sequential(nn.Dropout(0.1), nn.Linear(256, num_classes))
 
     def head_params(self):
         return [p for n, p in self.named_parameters() if not n.startswith("enc.") and p.requires_grad]
@@ -103,16 +84,7 @@ class Net(nn.Module):
     def forward(self, px, ids, mask):
         if self.mode == "vit":
             return self.head(self.enc(pixel_values=px).pooler_output)
-        if self.mode == "bert":
-            return self.head(self.enc(input_ids=ids, attention_mask=mask).pooler_output)
-
-        i = self.enc.visual_projection(self.enc.vision_model(pixel_values=px).pooler_output)
-        t = self.enc.text_projection(self.enc.text_model(input_ids=ids, attention_mask=mask).pooler_output)
-        i = nn.functional.normalize(i, dim=-1)
-        t = nn.functional.normalize(t, dim=-1)
-        g = torch.sigmoid(self.gate(torch.cat([i, t], -1)))
-        fused = g * torch.tanh(self.pi(i)) + (1.0 - g) * torch.tanh(self.pt(t))
-        return self.head(fused)
+        return self.head(self.enc(input_ids=ids, attention_mask=mask).pooler_output)
 
 
 def make_collate(mode, proc, tok):
@@ -128,7 +100,7 @@ def make_collate(mode, proc, tok):
             out["px"] = None
 
         if mode != "vit":
-            max_len = 77 if mode == "clip" else 128
+            max_len = 128
             enc = tok(list(texts), return_tensors="pt", padding=True, truncation=True, max_length=max_len)
             out["input_ids"] = enc["input_ids"]
             out["mask"] = enc["attention_mask"]
@@ -173,10 +145,7 @@ def run_seed(mode, seed, cfg, workers=4, dev="cuda"):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-    if mode == "clip":
-        p = CLIPProcessor.from_pretrained(NAMES[mode])
-        proc, tok = p.image_processor, p.tokenizer
-    elif mode == "vit":
+    if mode == "vit":
         proc, tok = ViTImageProcessor.from_pretrained(NAMES[mode]), None
     else:
         proc, tok = None, AutoTokenizer.from_pretrained(NAMES[mode])
@@ -206,7 +175,7 @@ def run_seed(mode, seed, cfg, workers=4, dev="cuda"):
     train_dl = loader("fit", shuffle=True)
     evals = {s: loader(s, shuffle=False) for s in ["holdout"] + EVAL_SPLITS}
 
-    model = Net(mode, cfg.get("unfreeze", 2)).to(dev)
+    model = Net(mode).to(dev)
     loss_fn = nn.CrossEntropyLoss()
     opt = torch.optim.AdamW([
         {"params": model.backbone_params(), "lr": cfg["lr"]},
@@ -274,12 +243,11 @@ def main():
     ap.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
     ap.add_argument("--epochs", type=int)
     ap.add_argument("--batch", type=int)
-    ap.add_argument("--unfreeze", type=int, help="CLIP mode: number of final transformer layers to unfreeze")
     ap.add_argument("--workers", type=int, default=4)
     a = ap.parse_args()
 
     cfg = dict(DEFAULTS[a.mode])
-    for k in ("epochs", "batch", "unfreeze"):
+    for k in ("epochs", "batch"):
         if getattr(a, k) is not None:
             cfg[k] = getattr(a, k)
 
