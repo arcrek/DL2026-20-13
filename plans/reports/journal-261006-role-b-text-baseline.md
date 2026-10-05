@@ -12,7 +12,7 @@ seeds: [0, 1, 2]
 ## 1. Executive Summary
 Role B has completed the implementation, training, and evaluation pipeline for the unimodal text baseline (**Text-only Baseline**) utilizing `bert-base-uncased` on the **Memotion 7k** dataset (SemEval-2020 Task 8, Task A: 3-class sentiment).
 
-All experiments were executed in a GPU environment (Tesla T4) via Google Colab. The pipeline strictly enforces a **Differential Learning Rate**, class-weighted cross-entropy loss (`class_weights`), and an early stopping / model selection mechanism based on hold-out Macro-F1. All three test prediction files (700 samples on the `test` split) have been successfully generated and verified against Schema v1 contracts at `results/text_seed{0,1,2}.json` and `results/bert/`.
+All experiments were executed in a GPU environment (Tesla T4) via Google Colab. The pipeline strictly enforces a **Differential Learning Rate**, class-weighted cross-entropy loss (`class_weights`), and an early stopping / model selection mechanism based on hold-out Macro-F1. All three test prediction files (700 samples on the `test` split) have been successfully generated and verified against Schema v1 contracts at `results/text_seed{0,1,2}.json`.
 
 ---
 
@@ -31,7 +31,7 @@ All experiments were executed in a GPU environment (Tesla T4) via Google Colab. 
   - Batch size: 32 | Max token length: 128 (with dynamic padding and truncation).
 - **Leakage Prevention & Class Imbalance Handling:**
   - Training data was split into `fit` (5,034 samples) and `holdout` (559 samples) using Union-Find template grouping to prevent meme template leakage.
-  - Class weights: `class_weights = [3.616, 1.051, 0.564]` for the three classes (0: Negative ~9%, 1: Neutral ~31%, 2: Positive ~59%).
+  - Class weights: `class_weights = [3.656, 1.060, 0.561]` computed on the `fit` split via `features/train_holdout.json` (corresponding to `[3.616, 1.051, 0.564]` on the full train split) for the three classes (0: Negative ~9%, 1: Neutral ~31%, 2: Positive ~59%).
   - Model Selection: Best checkpoint saved at the epoch achieving the highest Macro-F1 on the `holdout` split.
 
 ---
@@ -64,10 +64,10 @@ Evaluation metrics on the test split (700 samples) across three independent rand
 
 ## 5. Downstream Handoff
 
-- [x] **Role A (Tech Lead):** Standard JSON files provided at `results/text_seed{0,1,2}.json` and `results/bert/`, passing 100% of test suites in `tests/test_results.py`.
+- [x] **Role A (Tech Lead):** Standard JSON files provided at `results/text_seed{0,1,2}.json`, passing 100% of test suites in `tests/test_results.py`.
 - [x] **Role E (Analysis):** Output probability distributions (`probs`), true labels (`y_true`), predicted labels (`y_pred`), and sarcasm tags (`sarcasm`) ready for:
   - Sub-group Sarcasm Analysis.
   - Confusion Matrix generation.
   - Statistical comparison against Image Baseline (Role C) and Fusion Baseline (Role D).
 - [x] **Role F (Report):** Quantitative metrics table provided in Section 3 and model architecture details prepared for Section 4 & 5 of the technical report.
-- [x] **Source Code (`src/`):** Delivered clean, comment-free implementation directly in `src/text.py` and `src/models/text.py`.
+- [x] **Source Code (`src/`):** Delivered clean implementation in `src/models/text.py` with CLI entrypoint at `src/text.py`.

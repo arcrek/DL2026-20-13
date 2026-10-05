@@ -96,7 +96,8 @@ def evaluate_split(model, loader, device):
         mask = batch["attention_mask"].to(device)
         labels = batch["labels"].to(device)
 
-        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda")):
+        autocast_dtype = torch.bfloat16 if (torch.cuda.is_available() and hasattr(torch.cuda, "is_bf16_supported") and torch.cuda.is_bf16_supported()) else torch.float16
+        with torch.autocast("cuda", dtype=autocast_dtype, enabled=(device == "cuda")):
             logits = model(input_ids, mask)
         probs = torch.softmax(logits.float(), dim=-1).cpu().numpy()
 
@@ -197,7 +198,8 @@ def train_seed(seed, cfg, device="cuda"):
             labels = batch["labels"].to(device)
 
             optimizer.zero_grad()
-            with torch.autocast("cuda", dtype=torch.bfloat16, enabled=(device == "cuda")):
+            autocast_dtype = torch.bfloat16 if (torch.cuda.is_available() and hasattr(torch.cuda, "is_bf16_supported") and torch.cuda.is_bf16_supported()) else torch.float16
+            with torch.autocast("cuda", dtype=autocast_dtype, enabled=(device == "cuda")):
                 logits = model(input_ids, mask)
                 loss = loss_fn(logits.float(), labels)
 
