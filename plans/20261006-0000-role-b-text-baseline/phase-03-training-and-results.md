@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: "Training Loop & Contract Export (3 Seeds)"
-status: pending
+status: completed
 priority: P1
 effort: "5h"
 dependencies: ["1", "2"]
