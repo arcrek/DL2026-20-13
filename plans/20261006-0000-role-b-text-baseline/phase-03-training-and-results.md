@@ -10,26 +10,26 @@ dependencies: ["1", "2"]
 # Phase 3: Training Loop & Contract Export (3 Seeds)
 
 ## Overview
-Thực hiện toàn bộ quá trình huấn luyện và đánh giá mô hình Text Baseline trên 3 seed ngẫu nhiên độc lập (`seed 0, 1, 2`), tự động chọn checkpoint tốt nhất theo Macro-F1 trên tập `holdout`, thực hiện dự đoán trên tập `test`, và xuất các tệp kết quả tuân thủ nghiêm ngặt hợp đồng dữ liệu tại `results/text_seed{0,1,2}.json`.
+Execute end-to-end training and evaluation for the Text Baseline across 3 independent random seeds (`seed 0, 1, 2`), automatically selecting the optimal checkpoint according to hold-out Macro-F1, computing test split predictions, and exporting schema-compliant result files to `results/text_seed{0,1,2}.json`.
 
 ## Requirements
 - **Functional:**
-  - Vòng lặp huấn luyện chuẩn PyTorch với `epochs = 5` (hoặc `6`), `batch_size = 32`.
-  - Hỗ trợ Mixed Precision (`torch.autocast("cuda", dtype=torch.bfloat16)` hoặc `float16`) để tiết kiệm VRAM và tăng tốc huấn luyện trên GPU.
-  - Sau mỗi epoch, tính toán đánh giá trên tập `holdout`:
-    - Macro-F1 (trung bình không trọng số F1 của 3 lớp).
-    - Lưu giữ `best_state_dict` tại epoch có `holdout_macro_f1` cao nhất.
-  - Khi hoàn thành huấn luyện mỗi seed:
-    - Nạp lại `best_state_dict`.
-    - Chạy inference trên tập `test` (700 mẫu).
-    - Trích xuất: `ids`, `y_true`, `probs` (ma trận softmax kích thước `[700, 3]`), `sarcasm`.
-  - Gọi hàm `save_results()` trong [`src/results.py`](../../src/results.py) để xuất kết quả:
-    - Đường dẫn: `results/text_seed{seed}.json`.
-    - Kiểm tra hợp đồng: `validate_result(res)`.
-  - Hỗ trợ CLI arguments: `--seeds 0 1 2`, `--epochs 5`, `--batch 32`, `--lr-backbone 1.5e-5`, `--lr-head 5e-4`.
+  - Standard PyTorch training loop with `epochs = 5`, `batch_size = 32`.
+  - Automatic mixed precision (`torch.autocast("cuda", dtype=torch.bfloat16)`) for accelerated GPU computation.
+  - Compute evaluation metrics after each epoch on `holdout`:
+    - Macro-F1 (unweighted average of F1 across 3 classes).
+    - Save `best_state_dict` corresponding to peak hold-out Macro-F1.
+  - Upon completing training for each seed:
+    - Reload `best_state_dict`.
+    - Run inference on the `test` split (700 samples).
+    - Collect: `ids`, `y_true`, `probs` (softmax matrix of shape `[700, 3]`), and `sarcasm`.
+  - Invoke `save_results()` in [`src/results.py`](../../src/results.py) to export files:
+    - Path: `results/text_seed{seed}.json`.
+    - Validate contract via `validate_result(res)`.
+  - Provide CLI flags: `--seeds 0 1 2`, `--epochs 5`, `--batch 32`, `--lr-backbone 1.5e-5`, `--lr-head 5e-4`.
 - **Non-functional:**
-  - Tính tái lập (Reproducibility): Cố định chặt chẽ seed cho `random`, `np.random`, `torch.manual_seed`, `torch.cuda.manual_seed_all` và PyTorch DataLoader `generator`.
-  - Không làm rò rỉ dữ liệu: Tập `test` chỉ được suy luận 1 lần duy nhất sau khi đã chọn model xong.
+  - Reproducibility: Seed all RNG sources (`random`, `np.random`, `torch.manual_seed`, `torch.cuda.manual_seed_all`, DataLoader generator).
+  - Strict evaluation integrity: The test split is evaluated only once after model selection.
 
 ## Architecture
 ```
@@ -44,41 +44,34 @@ For seed in [0, 1, 2]:
 ```
 
 ## Related Code Files
+- Modify: [`src/text.py`](../../src/text.py)
 - Modify: [`src/models/text.py`](../../src/models/text.py)
 - Reference: [`src/results.py`](../../src/results.py)
 - Reference: [`tests/test_results.py`](../../tests/test_results.py)
 - Generate: `results/text_seed0.json`, `results/text_seed1.json`, `results/text_seed2.json`
 
 ## Implementation Steps
-1. Viết hàm `evaluate(model, dataloader, device)` trả về `all_probs`, `all_ys`, `all_ids`, `all_sarcasms`.
-2. Viết hàm tính chỉ số `compute_metrics(y_true, probas)` tính Macro-F1 và Accuracy.
-3. Viết hàm `train_seed(seed, cfg, device)`:
-   - Cố định toàn bộ seed số ngẫu nhiên.
-   - Huấn luyện qua từng epoch với gradient clipping (`clip_grad_norm_ <= 1.0`).
-   - Theo dõi F1 trên `holdout` và snapshot state dict tốt nhất.
-   - Chạy suy luận trên `test` với state dict tốt nhất.
-   - Gọi `save_results("text", seed, test_ids, test_y_true, test_probs, test_sarcasm, split="test")`.
-4. Viết hàm `main()` với `argparse` để người dùng có thể chạy dễ dàng:
+1. Implement `evaluate_split(model, dataloader, device)` returning `macro_f1`, `acc`, `probs`, `y_true`, `ids`, and `sarcasm`.
+2. Implement `train_seed(seed, cfg, device)`:
+   - Fix all random seeds.
+   - Run training loop with gradient clipping (`clip_grad_norm_ <= 1.0`).
+   - Track holdout Macro-F1 and checkpoint the best weights.
+   - Run test evaluation and invoke `save_results()`.
+3. Provide command-line interface entry point in `main()`.
+4. Validate results against the test suite:
    ```bash
-   python -m src.models.text --seeds 0 1 2
-   ```
-5. Chạy lệnh kiểm thử hợp đồng:
-   ```bash
-   python tests/test_results.py
    pytest tests/test_results.py
    ```
 
 ## Success Criteria
-- [ ] 3 tệp `results/text_seed0.json`, `results/text_seed1.json`, `results/text_seed2.json` được tạo thành công.
-- [ ] Hàm `validate_result()` trong `src/results.py` trả về `True` không phát sinh ngoại lệ cho cả 3 file.
-- [ ] Độ dài danh sách `ids`, `y_true`, `y_pred`, `probs`, `sarcasm` trong mỗi file đều bằng đúng kích thước tập test (700 mẫu).
-- [ ] Xác suất trong `probs` đều là số thực hữu hạn, nằm trong khoảng `[0, 1]` và tổng mỗi dòng bằng đúng 1.0.
-- [ ] `pytest tests/test_results.py` vượt qua toàn bộ test cases.
+- [x] Three files `results/text_seed0.json`, `results/text_seed1.json`, and `results/text_seed2.json` generated.
+- [x] Function `validate_result()` passes with zero errors on all files.
+- [x] Length of `ids`, `y_true`, `y_pred`, `probs`, `sarcasm` matches 700 samples.
+- [x] Softmax probabilities are valid numbers in `[0, 1]` summing to 1.0.
+- [x] `pytest tests/test_results.py` passes all assertions.
 
 ## Risk Assessment
-- **Nguy cơ:** Thời gian huấn luyện vượt quá khung 6-18h nếu huấn luyện tuần tự trên GPU yếu.
-  - *Dấu hiệu:* Mỗi epoch mất > 10 phút, 3 seed mất > 3 giờ.
-  - *Giải pháp:* Kích hoạt `torch.autocast`, tăng `batch_size` lên 32 hoặc 64 (nếu VRAM cho phép), chỉ huấn luyện 5 epochs.
-- **Nguy cơ:** Quên lưu nhãn `sarcasm` dẫn đến việc hàm `save_results()` báo lỗi `missing keys`.
-  - *Dấu hiệu:* Ngoại lệ `ValueError: missing keys: ['sarcasm']`.
-  - *Giải pháp:* Đảm bảo Dataset và Collate trả về trường `sarcasm` lấy từ JSONL gốc.
+- **Risk:** Training duration exceeding time budget on slower GPUs/CPUs.
+  - *Mitigation:* Enable `torch.autocast`, use `batch_size=32`, and constrain training to 5 epochs.
+- **Risk:** Missing required keys in results dictionary.
+  - *Mitigation:* Collate and return `sarcasm` metadata from dataset records.

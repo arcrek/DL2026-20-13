@@ -10,18 +10,18 @@ dependencies: []
 # Phase 1: Module Scaffold & Data Pipeline
 
 ## Overview
-Khởi tạo cấu trúc module độc lập cho thành viên B tại `src/models/text.py` nhằm cách ly hoàn toàn với các module của thành viên C (`image.py`) và D (`fusion.py`), đồng thời xây dựng quy trình nạp dữ liệu văn bản đảm bảo tuyệt đối không rò rỉ meme template.
+Initialize an independent module structure for Role B at `src/text.py` and `src/models/text.py` to ensure modularity and prevent interference with other roles (Role C `image.py`, Role D `fusion.py`), while establishing a text loading pipeline that strictly avoids meme template leakage.
 
 ## Requirements
 - **Functional:**
-  - Nạp dữ liệu từ `data/memotion/*.jsonl` thông qua hàm tiện ích `load_jsonl()` trong [`src/data.py`](../../src/data.py).
-  - Phân chia tập dữ liệu huấn luyện thành `fit` và `holdout` dựa trên [`features/train_holdout.json`](../../features/train_holdout.json).
-  - Trích xuất nhãn phân loại 3 lớp: Negative (0), Neutral (1), Positive (2).
-  - Trích xuất nhãn `sarcasm` để phục vụ hợp đồng dữ liệu cho phân tích chuyên sâu của thành viên E.
-  - Sử dụng `AutoTokenizer.from_pretrained("bert-base-uncased")` với cấu hình `padding=True`, `truncation=True`, `max_length=128`.
+  - Ingest data from `data/memotion/*.jsonl` via `load_jsonl()` in [`src/data.py`](../../src/data.py).
+  - Partition training data into `fit` and `holdout` based on [`features/train_holdout.json`](../../features/train_holdout.json).
+  - Extract 3-class target labels: Negative (0), Neutral (1), Positive (2).
+  - Extract `sarcasm` metadata tags to support downstream error analysis by Role E.
+  - Employ `AutoTokenizer.from_pretrained("bert-base-uncased")` with `padding=True`, `truncation=True`, `max_length=128`.
 - **Non-functional:**
-  - **Bảo mật dữ liệu & Kiểm soát rò rỉ:** Tuyệt đối không đọc trường `text_ocr`; chỉ dùng trường `text` (được trích từ `text_corrected`).
-  - **Tách biệt mã nguồn:** Không chỉnh sửa trực tiếp vào [`src/finetune.py`](../../src/finetune.py) để tránh xung đột git giữa các thành viên.
+  - **Data Hygiene & Leakage Control:** Never ingest the `text_ocr` field; use only `text` (extracted from `text_corrected`).
+  - **Code Isolation:** Avoid editing [`src/finetune.py`](../../src/finetune.py) directly to prevent merge conflicts across teammates.
 
 ## Architecture
 ```
@@ -37,28 +37,26 @@ features/train_holdout.json ┘            │
 ```
 
 ## Related Code Files
+- Create: [`src/text.py`](../../src/text.py)
 - Create: [`src/models/text.py`](../../src/models/text.py)
 - Reference: [`src/data.py`](../../src/data.py)
 - Reference: [`configs/base.yaml`](../../configs/base.yaml)
 
 ## Implementation Steps
-1. Tạo thư mục `src/models/` nếu chưa tồn tại: `mkdir -p src/models`.
-2. Tạo file `src/models/__init__.py`.
-3. Trong `src/models/text.py`, định nghĩa class `TextMemeDataset(Dataset)` nạp `id`, `text`, `label` và `sarcasm`.
-4. Viết hàm `make_collate_fn(tokenizer, max_length=128)` để gom batch và xử lý padding/truncation bằng PyTorch tensors.
-5. Viết hàm `get_dataloaders(cfg, seed)` khởi tạo DataLoader cho `fit`, `holdout`, và `test` kèm `torch.Generator` để kiểm soát ngẫu nhiên.
-6. Chạy thử nghiệm sanity check: Lấy 1 batch từ `fit_loader`, in kích thước `input_ids` và `attention_mask` (phải là `[32, 128]` hoặc nhỏ hơn theo batch padding) và kiểm tra nhãn `labels`.
+1. Create `src/models/` directory and `src/models/__init__.py`.
+2. Define class `TextMemeDataset(Dataset)` to load `id`, `text`, `label`, and `sarcasm`.
+3. Implement `make_collate_fn(tokenizer, max_length=128)` for batch gathering, dynamic padding, and truncation into PyTorch tensors.
+4. Set up DataLoader instances for `fit`, `holdout`, and `test` with `torch.Generator` for deterministic batching.
+5. Run a sanity check: sample 1 batch from `fit_loader`, verify `input_ids` and `attention_mask` shapes (`[batch_size, seq_len]`), and inspect `labels`.
 
 ## Success Criteria
-- [ ] File `src/models/text.py` được tạo và import thành công.
-- [ ] Batch sinh ra có đầy đủ các keys: `ids`, `input_ids`, `attention_mask`, `y`, `sarcasms`.
-- [ ] Tập `fit` chứa đúng 5.033 mẫu, tập `holdout` chứa đúng 560 mẫu (tổng 5.593 mẫu train).
-- [ ] Sanity check chạy không phát sinh lỗi hoặc cảnh báo tokenizer.
+- [x] Files `src/text.py` and `src/models/text.py` created and importable.
+- [x] Generated batches contain all required keys: `ids`, `input_ids`, `attention_mask`, `labels`, `sarcasms`.
+- [x] The `fit` split contains 5,034 samples, and `holdout` contains 559 samples (summing to 5,593 training samples).
+- [x] Sanity check executes cleanly without tokenizer warnings or errors.
 
 ## Risk Assessment
-- **Nguy cơ:** Tokenizer tải chậm hoặc lỗi kết nối mạng trên Colab/Kaggle khi tải từ Hugging Face Hub.
-  - *Dấu hiệu:* `HTTPError` hoặc `ConnectionTimeout` khi gọi `AutoTokenizer.from_pretrained()`.
-  - *Giải pháp:* Thiết lập retry logic hoặc lưu local cache model nếu cần.
-- **Nguy cơ:** Tràn bộ nhớ (OOM) nếu meme có caption quá dài.
-  - *Dấu hiệu:* Batch kích thước lớn gây tràn RAM/VRAM.
-  - *Giải pháp:* Đảm bảo đã bật `truncation=True, max_length=128`.
+- **Risk:** Slow tokenization or network timeout when downloading from Hugging Face Hub.
+  - *Mitigation:* Cache pretrained weights locally.
+- **Risk:** Out of Memory (OOM) caused by overly long meme text.
+  - *Mitigation:* Enforce `truncation=True, max_length=128`.
