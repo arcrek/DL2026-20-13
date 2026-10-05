@@ -17,6 +17,10 @@ import torch.nn as nn
 from sklearn.metrics import accuracy_score, f1_score
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoModel, AutoTokenizer
+import transformers
+
+# Tắt các cảnh báo UNEXPECTED không cần thiết từ Hugging Face
+transformers.logging.set_verbosity_error()
 
 # Đảm bảo import được từ src dù chạy từ root hay từ trong folder
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -205,10 +209,11 @@ def train_seed(seed, cfg, device="cuda"):
     best_epoch = -1
     best_state = None
 
+    total_batches = len(fit_loader)
     for ep in range(cfg["epochs"]):
         model.train()
         total_loss = 0.0
-        for batch in fit_loader:
+        for step, batch in enumerate(fit_loader, 1):
             input_ids = batch["input_ids"].to(device)
             mask = batch["attention_mask"].to(device)
             labels = batch["labels"].to(device)
@@ -224,12 +229,18 @@ def train_seed(seed, cfg, device="cuda"):
             scheduler.step()
             total_loss += loss.item()
 
-        avg_loss = total_loss / len(fit_loader)
+            # In tiến độ chi tiết: trên CPU in mỗi 15 batch, trên GPU in mỗi 30 batch
+            log_interval = 15 if device == "cpu" else 30
+            if step % log_interval == 0 or step == total_batches:
+                pct = (step / total_batches) * 100
+                print(f"  [Seed {seed} | Ep {ep+1:02d}/{cfg['epochs']:02d}] Batch {step:03d}/{total_batches} ({pct:5.1f}%) | Batch Loss: {total_loss / step:.4f}", flush=True)
+
+        avg_loss = total_loss / total_batches
         eval_ho = evaluate_split(model, holdout_loader, device)
         ho_f1 = eval_ho["macro_f1"]
         ho_acc = eval_ho["acc"]
 
-        print(f"[Seed {seed}] Epoch {ep + 1:02d}/{cfg['epochs']:02d} | Train Loss: {avg_loss:.4f} | Holdout F1: {ho_f1:.4f} | Holdout Acc: {ho_acc:.4f}")
+        print(f"==> [Seed {seed}] Epoch {ep + 1:02d}/{cfg['epochs']:02d} HOÀN TẤT | Train Loss: {avg_loss:.4f} | Holdout F1: {ho_f1:.4f} | Holdout Acc: {ho_acc:.4f}", flush=True)
 
         if ho_f1 > best_f1:
             best_f1 = ho_f1
@@ -295,7 +306,17 @@ def main():
     }
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Bắt đầu huấn luyện Text Baseline trên thiết bị: {device.upper()}")
+    if device == "cpu":
+        print("\n" + "="*80)
+        print("⚠️  [LƯU Ý]: Hệ thống đang chạy trên CPU (không phát hiện GPU)!")
+        print("👉 Huấn luyện BERT trên CPU sẽ mất khoảng ~45-60 phút / seed (~2.5-3 tiếng cho 3 seeds).")
+        print("👉 ĐỂ TĂNG TỐC GẤP 15 LẦN (Chỉ mất ~3-4 phút / seed, ~10-12 phút cho cả 3 seeds):")
+        print("   Trên Google Colab, bạn hãy bấm vào menu:")
+        print("   Runtime -> Change runtime type -> Hardware accelerator: T4 GPU -> Save.")
+        print("="*80 + "\n")
+    else:
+        print(f"\n🚀 Đang chạy trên GPU: {torch.cuda.get_device_name(0)} (Tăng tốc tối đa)\n")
+
     print(f"Cấu hình: {cfg}")
     print(f"Seeds: {args.seeds}")
 
