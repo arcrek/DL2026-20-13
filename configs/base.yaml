@@ -1,0 +1,20 @@
+# Shared by every role/branch. Do NOT override split or seeds per model (fair comparison).
+data:
+  dir: data/memotion
+  holdout_file: features/train_holdout.json   # group-aware 10% hold-out of train (seed 0)
+  holdout_frac: 0.10
+  holdout_seed: 0
+  fit_split: train          # restricted to `fit` ids in holdout_file
+  select_split: holdout     # model selection / early stopping
+  eval_splits: [validation, test]
+  results_split: test       # split stored in results/*.json
+seeds: [0, 1, 2]
+num_classes: 3
+class_weighted_loss: true
+results_dir: results
+configs:                    # config name -> results/{name}_seed{seed}.json, owner role
+  text: B
+  image: C
+  both_concat: D
+  both_cross_attn: D
+  both_product: D
