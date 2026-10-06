@@ -1,0 +1,2419 @@
+{
+  "input_manifest": {
+    "input_commit": "9fa27c269bd542b74d342636a6c634700a1d6e28",
+    "result_sha256": {
+      "text_seed0.json": "b7d07dce978da9f2422d13785af97e0a99f5b1de8c23e862d7454aba667d81ee",
+      "text_seed1.json": "c0bf714b98d7c629e22bc02d739fd4043adb35b8a1bd44af6be993163df5010f",
+      "text_seed2.json": "bf73793ea3dd06a228685bb1127d1de29946d46831e838021e2f718482f85ac7",
+      "image_seed0.json": "03172b8452e1e4700216af22bda790ebd8a0a84052d5999f7a41b60ad937ccf9",
+      "image_seed1.json": "b29b2b427c6227d919d3e88cdb8be59d2ed28de97667a34a2cfa80d2d3272d2c",
+      "image_seed2.json": "1fbada6ea92dc8bd082005cef9b8f0fa7fb5162db48c3522333d158ea478c4e6",
+      "both_concat_seed0.json": "06018f6c1fff4d24d6bb539fd014dd59025fac6e5294e5f77d02bae8a8e97c56",
+      "both_concat_seed1.json": "b08bf7d8e7b3c77ca4a5f0802f42b0e7043dd79354bf21a7fda44265f556dd35",
+      "both_concat_seed2.json": "59b1f0e9f3fe0578420b334ae9fa2a9cb4edd71a8359283e0cc0cb9cc14a681d",
+      "both_cross_attn_seed0.json": "2a3245b5791dbb8725c85f0b7dcb587ce88b81ba9985b0c896231e6fb6366bf5",
+      "both_cross_attn_seed1.json": "cfac3771fb4c9439bf3ed83d21da522043387b336f2e4145d28c09b8c8fcf9af",
+      "both_cross_attn_seed2.json": "1eb2a8d9e4db66ecc21c70cdf8b61891419ec90762a469f0c97ade3b37f253a1",
+      "both_product_seed0.json": "59ed8a5caf7f8181319bd212c496638df9b8376493674bcd47d5a621c5b6abdf",
+      "both_product_seed1.json": "7b8fd4c718a1eb6bf7a16f9cee8a0d7a0fc5a62d8757d26df68e64821a34f1a5",
+      "both_product_seed2.json": "1cc1894db14b0878bc4fb3ca8d167b5afd4b6d74174f05ae37e49f45f647754c"
+    },
+    "bootstrap_draws": 20000,
+    "permutation_draws": 20000,
+    "random_seed": 20261007,
+    "std_ddof": 1,
+    "statistic": "mean of seed-wise 3-class Macro-F1",
+    "bootstrap": "class-stratified paired meme bootstrap, conditional on saved trained models",
+    "permutation": "two-sided, swap all seeds together within each meme",
+    "multiple_testing": "Holm: 6 primary comparisons; 4 exploratory comparisons separately",
+    "metadata_sha256": "9fd037420670e5e2c15837cba7bf3d6b5f35df092398637c8a5ec30e7c31fe1f",
+    "metadata_source": {
+      "dataset": "Ahren09/MMSoc_Memotion",
+      "config": "default",
+      "split": "test",
+      "rows": 700,
+      "dataset_revision": "cdb15b61d84d56db73e0e59535dfea81ea3c22f4",
+      "source": "https://datasets-server.huggingface.co/rows",
+      "sha256": "9fd037420670e5e2c15837cba7bf3d6b5f35df092398637c8a5ec30e7c31fe1f",
+      "fields": [
+        "id",
+        "label",
+        "text",
+        "humor",
+        "sarcasm",
+        "motivational"
+      ]
+    }
+  },
+  "overall_metrics": [
+    {
+      "model": "text",
+      "n": 700,
+      "macro_f1_mean": 0.3093815933918203,
+      "macro_f1_sd": 0.022515260105687256,
+      "accuracy_mean": 0.45714285714285713,
+      "accuracy_sd": 0.1328110519128739,
+      "macro_f1_seeds": [
+        0.32094951996729976,
+        0.2834339438417676,
+        0.3237613163663936
+      ],
+      "accuracy_seeds": [
+        0.37,
+        0.61,
+        0.3914285714285714
+      ],
+      "class_f1_mean": [
+        0.1195465725911669,
+        0.24037839634350852,
+        0.5682198112407856
+      ],
+      "class_counts": [
+        54,
+        218,
+        428
+      ]
+    },
+    {
+      "model": "image",
+      "n": 700,
+      "macro_f1_mean": 0.3081335407714173,
+      "macro_f1_sd": 0.02431647220908557,
+      "accuracy_mean": 0.43857142857142856,
+      "accuracy_sd": 0.06005099873423915,
+      "macro_f1_seeds": [
+        0.28120533672730197,
+        0.314709632128987,
+        0.3284856534579629
+      ],
+      "accuracy_seeds": [
+        0.37142857142857144,
+        0.45714285714285713,
+        0.48714285714285716
+      ],
+      "class_f1_mean": [
+        0.07495553347093749,
+        0.26177503498165466,
+        0.5876700538616596
+      ],
+      "class_counts": [
+        54,
+        218,
+        428
+      ]
+    },
+    {
+      "model": "both_concat",
+      "n": 700,
+      "macro_f1_mean": 0.33686943639913974,
+      "macro_f1_sd": 0.011055935763563568,
+      "accuracy_mean": 0.4266666666666667,
+      "accuracy_sd": 0.024425368768061246,
+      "macro_f1_seeds": [
+        0.32892413425801575,
+        0.3494958638721015,
+        0.33218831106730184
+      ],
+      "accuracy_seeds": [
+        0.3985714285714286,
+        0.44285714285714284,
+        0.43857142857142856
+      ],
+      "class_f1_mean": [
+        0.13493901456914856,
+        0.344544343430774,
+        0.5311249511974966
+      ],
+      "class_counts": [
+        54,
+        218,
+        428
+      ]
+    },
+    {
+      "model": "both_cross_attn",
+      "n": 700,
+      "macro_f1_mean": 0.3268689612817648,
+      "macro_f1_sd": 0.019325291013881453,
+      "accuracy_mean": 0.46761904761904766,
+      "accuracy_sd": 0.06622986152652843,
+      "macro_f1_seeds": [
+        0.3443003787520569,
+        0.33021874617528985,
+        0.3060877589179476
+      ],
+      "accuracy_seeds": [
+        0.47714285714285715,
+        0.39714285714285713,
+        0.5285714285714286
+      ],
+      "class_f1_mean": [
+        0.08532873959230548,
+        0.3114343648875603,
+        0.5838437793654284
+      ],
+      "class_counts": [
+        54,
+        218,
+        428
+      ]
+    },
+    {
+      "model": "both_product",
+      "n": 700,
+      "macro_f1_mean": 0.3209959223506069,
+      "macro_f1_sd": 0.0019389629804106529,
+      "accuracy_mean": 0.4085714285714286,
+      "accuracy_sd": 0.01647508942095828,
+      "macro_f1_seeds": [
+        0.3192733693963353,
+        0.3206185762342136,
+        0.32309582142127174
+      ],
+      "accuracy_seeds": [
+        0.4257142857142857,
+        0.40714285714285714,
+        0.39285714285714285
+      ],
+      "class_f1_mean": [
+        0.12081559672908311,
+        0.3390405453608365,
+        0.503131624961901
+      ],
+      "class_counts": [
+        54,
+        218,
+        428
+      ]
+    }
+  ],
+  "per_seed_metrics": [
+    {
+      "model": "text",
+      "seed": 0,
+      "n": 700,
+      "macro_f1": 0.32094951996729976,
+      "accuracy": 0.37,
+      "holdout_macro_f1": 0.3539397302986544,
+      "best_epoch": 2
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "n": 700,
+      "macro_f1": 0.2834339438417676,
+      "accuracy": 0.61,
+      "holdout_macro_f1": 0.2832462048754551,
+      "best_epoch": 1
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "n": 700,
+      "macro_f1": 0.3237613163663936,
+      "accuracy": 0.3914285714285714,
+      "holdout_macro_f1": 0.34421709028407493,
+      "best_epoch": 5
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "n": 700,
+      "macro_f1": 0.28120533672730197,
+      "accuracy": 0.37142857142857144,
+      "holdout_macro_f1": 0.3218838050793239,
+      "best_epoch": 3
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "n": 700,
+      "macro_f1": 0.314709632128987,
+      "accuracy": 0.45714285714285713,
+      "holdout_macro_f1": 0.3328934250098116,
+      "best_epoch": 1
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "n": 700,
+      "macro_f1": 0.3284856534579629,
+      "accuracy": 0.48714285714285716,
+      "holdout_macro_f1": 0.32485800024868383,
+      "best_epoch": 2
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "n": 700,
+      "macro_f1": 0.32892413425801575,
+      "accuracy": 0.3985714285714286,
+      "holdout_macro_f1": 0.3117759707114444,
+      "best_epoch": 3
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "n": 700,
+      "macro_f1": 0.3494958638721015,
+      "accuracy": 0.44285714285714284,
+      "holdout_macro_f1": 0.36236256998917077,
+      "best_epoch": 5
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "n": 700,
+      "macro_f1": 0.33218831106730184,
+      "accuracy": 0.43857142857142856,
+      "holdout_macro_f1": 0.34219815518417446,
+      "best_epoch": 4
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "n": 700,
+      "macro_f1": 0.3443003787520569,
+      "accuracy": 0.47714285714285715,
+      "holdout_macro_f1": 0.34776495987295836,
+      "best_epoch": 4
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "n": 700,
+      "macro_f1": 0.33021874617528985,
+      "accuracy": 0.39714285714285713,
+      "holdout_macro_f1": 0.3271964172760072,
+      "best_epoch": 5
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "n": 700,
+      "macro_f1": 0.3060877589179476,
+      "accuracy": 0.5285714285714286,
+      "holdout_macro_f1": 0.31864776582455995,
+      "best_epoch": 2
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "n": 700,
+      "macro_f1": 0.3192733693963353,
+      "accuracy": 0.4257142857142857,
+      "holdout_macro_f1": 0.33606570735062985,
+      "best_epoch": 4
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "n": 700,
+      "macro_f1": 0.3206185762342136,
+      "accuracy": 0.40714285714285714,
+      "holdout_macro_f1": 0.35260368426469074,
+      "best_epoch": 4
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "n": 700,
+      "macro_f1": 0.32309582142127174,
+      "accuracy": 0.39285714285714285,
+      "holdout_macro_f1": 0.34528223882068204,
+      "best_epoch": 3
+    }
+  ],
+  "paired_comparisons": [
+    {
+      "model_a": "both_concat",
+      "model_b": "text",
+      "family": "primary",
+      "delta_macro_f1": 0.027487843007319435,
+      "p_raw": 0.063996800159992,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.0010713690351179387,
+      "ci95_high": 0.05619286562724083,
+      "p_holm": 0.383980800959952,
+      "significant_005": false
+    },
+    {
+      "model_a": "both_concat",
+      "model_b": "image",
+      "family": "primary",
+      "delta_macro_f1": 0.02873589562772244,
+      "p_raw": 0.1422428878556072,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.008267906625926667,
+      "ci95_high": 0.06557327576726776,
+      "p_holm": 0.7112144392780361,
+      "significant_005": false
+    },
+    {
+      "model_a": "both_cross_attn",
+      "model_b": "text",
+      "family": "primary",
+      "delta_macro_f1": 0.017487367889944483,
+      "p_raw": 0.2071896405179741,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.007819898721286488,
+      "ci95_high": 0.04246395500511076,
+      "p_holm": 0.8287585620718964,
+      "significant_005": false
+    },
+    {
+      "model_a": "both_cross_attn",
+      "model_b": "image",
+      "family": "primary",
+      "delta_macro_f1": 0.01873542051034749,
+      "p_raw": 0.2709364531773411,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.014811002227022384,
+      "ci95_high": 0.05142985354688332,
+      "p_holm": 0.8287585620718964,
+      "significant_005": false
+    },
+    {
+      "model_a": "both_product",
+      "model_b": "text",
+      "family": "primary",
+      "delta_macro_f1": 0.011614328958786613,
+      "p_raw": 0.45132743362831856,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.016805470836257882,
+      "ci95_high": 0.04021259623869953,
+      "p_holm": 0.9026548672566371,
+      "significant_005": false
+    },
+    {
+      "model_a": "both_product",
+      "model_b": "image",
+      "family": "primary",
+      "delta_macro_f1": 0.012862381579189619,
+      "p_raw": 0.4884755762211889,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.02375334109564809,
+      "ci95_high": 0.04946564940004377,
+      "p_holm": 0.9026548672566371,
+      "significant_005": false
+    },
+    {
+      "model_a": "text",
+      "model_b": "image",
+      "family": "exploratory",
+      "delta_macro_f1": 0.0012480526204030062,
+      "p_raw": 0.9424028798560072,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.031827940106966324,
+      "ci95_high": 0.03322962195070505,
+      "p_holm": 1.0,
+      "significant_005": false
+    },
+    {
+      "model_a": "both_concat",
+      "model_b": "both_cross_attn",
+      "family": "exploratory",
+      "delta_macro_f1": 0.010000475117374952,
+      "p_raw": 0.544022798860057,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.018639620196339947,
+      "ci95_high": 0.03961794799386092,
+      "p_holm": 1.0,
+      "significant_005": false
+    },
+    {
+      "model_a": "both_concat",
+      "model_b": "both_product",
+      "family": "exploratory",
+      "delta_macro_f1": 0.015873514048532822,
+      "p_raw": 0.16629168541572922,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.006573066783485233,
+      "ci95_high": 0.03910578553411682,
+      "p_holm": 0.6651667416629169,
+      "significant_005": false
+    },
+    {
+      "model_a": "both_cross_attn",
+      "model_b": "both_product",
+      "family": "exploratory",
+      "delta_macro_f1": 0.00587303893115787,
+      "p_raw": 0.7159642017899105,
+      "exact": false,
+      "draws": 20000,
+      "ci95_low": -0.0228484587925408,
+      "ci95_high": 0.03382055190639397,
+      "p_holm": 1.0,
+      "significant_005": false
+    }
+  ],
+  "subgroup_metrics": [
+    {
+      "group": "Non-sarcastic",
+      "model": "text",
+      "n": 157,
+      "macro_f1_mean": 0.2847237923737846,
+      "macro_f1_sd": 0.029683916740564528,
+      "accuracy_mean": 0.4182590233545647,
+      "accuracy_sd": 0.12648298096481086,
+      "macro_f1_seeds": [
+        0.26588459491900857,
+        0.2693452380952381,
+        0.31894154410710707
+      ],
+      "accuracy_seeds": [
+        0.3184713375796178,
+        0.5605095541401274,
+        0.37579617834394907
+      ],
+      "class_f1_mean": [
+        0.07724867724867725,
+        0.2608632052229613,
+        0.5160594946497151
+      ],
+      "class_counts": [
+        11,
+        60,
+        86
+      ]
+    },
+    {
+      "group": "Non-sarcastic",
+      "model": "image",
+      "n": 157,
+      "macro_f1_mean": 0.2774157574587506,
+      "macro_f1_sd": 0.02022936272488463,
+      "accuracy_mean": 0.3906581740976646,
+      "accuracy_sd": 0.051875973345522804,
+      "macro_f1_seeds": [
+        0.2546027131782946,
+        0.29316979316979314,
+        0.28447476602816407
+      ],
+      "accuracy_seeds": [
+        0.33121019108280253,
+        0.4140127388535032,
+        0.4267515923566879
+      ],
+      "class_f1_mean": [
+        0.03422619047619047,
+        0.26214884602782546,
+        0.5358722358722359
+      ],
+      "class_counts": [
+        11,
+        60,
+        86
+      ]
+    },
+    {
+      "group": "Non-sarcastic",
+      "model": "both_concat",
+      "n": 157,
+      "macro_f1_mean": 0.3303674291913099,
+      "macro_f1_sd": 0.0013320299242807242,
+      "accuracy_mean": 0.4076433121019109,
+      "accuracy_sd": 0.006369426751592354,
+      "macro_f1_seeds": [
+        0.32883504624649534,
+        0.3312483185364541,
+        0.33101892279098033
+      ],
+      "accuracy_seeds": [
+        0.4012738853503185,
+        0.4140127388535032,
+        0.40764331210191085
+      ],
+      "class_f1_mean": [
+        0.14860081479997328,
+        0.35265450467934617,
+        0.48984696809461026
+      ],
+      "class_counts": [
+        11,
+        60,
+        86
+      ]
+    },
+    {
+      "group": "Non-sarcastic",
+      "model": "both_cross_attn",
+      "n": 157,
+      "macro_f1_mean": 0.31322044979242913,
+      "macro_f1_sd": 0.009002172666665916,
+      "accuracy_mean": 0.45859872611464975,
+      "accuracy_sd": 0.0614245271400825,
+      "macro_f1_seeds": [
+        0.302880658436214,
+        0.3193153583098641,
+        0.3174653326312094
+      ],
+      "accuracy_seeds": [
+        0.43312101910828027,
+        0.4140127388535032,
+        0.5286624203821656
+      ],
+      "class_f1_mean": [
+        0.025641025641025644,
+        0.3668834228630666,
+        0.5471369008731952
+      ],
+      "class_counts": [
+        11,
+        60,
+        86
+      ]
+    },
+    {
+      "group": "Non-sarcastic",
+      "model": "both_product",
+      "n": 157,
+      "macro_f1_mean": 0.32201249402607157,
+      "macro_f1_sd": 0.010908571197182452,
+      "accuracy_mean": 0.4097664543524416,
+      "accuracy_sd": 0.038917840296864875,
+      "macro_f1_seeds": [
+        0.31518440172905365,
+        0.3162597636281847,
+        0.3345933167209763
+      ],
+      "accuracy_seeds": [
+        0.45222929936305734,
+        0.37579617834394907,
+        0.4012738853503185
+      ],
+      "class_f1_mean": [
+        0.0987878787878788,
+        0.4035968471484743,
+        0.4636527561418615
+      ],
+      "class_counts": [
+        11,
+        60,
+        86
+      ]
+    },
+    {
+      "group": "Sarcastic",
+      "model": "text",
+      "n": 543,
+      "macro_f1_mean": 0.31554118924507096,
+      "macro_f1_sd": 0.026422229131919245,
+      "accuracy_mean": 0.46838551258440764,
+      "accuracy_sd": 0.13514701731746465,
+      "macro_f1_seeds": [
+        0.33662817461070454,
+        0.28590218718329785,
+        0.32409320594121044
+      ],
+      "accuracy_seeds": [
+        0.3848987108655617,
+        0.6243093922651933,
+        0.39594843462246776
+      ],
+      "class_f1_mean": [
+        0.13140664521432396,
+        0.23292030639213224,
+        0.5822966161287567
+      ],
+      "class_counts": [
+        43,
+        158,
+        342
+      ]
+    },
+    {
+      "group": "Sarcastic",
+      "model": "image",
+      "n": 543,
+      "macro_f1_mean": 0.3172927254088998,
+      "macro_f1_sd": 0.026288267340535795,
+      "accuracy_mean": 0.4524248004910989,
+      "accuracy_sd": 0.06256994724757346,
+      "macro_f1_seeds": [
+        0.2894949849414663,
+        0.32063047740417283,
+        0.34175271388106027
+      ],
+      "accuracy_seeds": [
+        0.3830570902394107,
+        0.4696132596685083,
+        0.5046040515653776
+      ],
+      "class_f1_mean": [
+        0.08855315420697947,
+        0.2616610442697399,
+        0.60166397774998
+      ],
+      "class_counts": [
+        43,
+        158,
+        342
+      ]
+    },
+    {
+      "group": "Sarcastic",
+      "model": "both_concat",
+      "n": 543,
+      "macro_f1_mean": 0.3386823816880345,
+      "macro_f1_sd": 0.014098833345734883,
+      "accuracy_mean": 0.4321669736034377,
+      "accuracy_sd": 0.029828190578898343,
+      "macro_f1_seeds": [
+        0.32834179501643906,
+        0.3547421792446966,
+        0.33296317080296783
+      ],
+      "accuracy_seeds": [
+        0.39779005524861877,
+        0.45119705340699817,
+        0.44751381215469616
+      ],
+      "class_f1_mean": [
+        0.13157130716159648,
+        0.34187852765343857,
+        0.5425973102490684
+      ],
+      "class_counts": [
+        43,
+        158,
+        342
+      ]
+    },
+    {
+      "group": "Sarcastic",
+      "model": "both_cross_attn",
+      "n": 543,
+      "macro_f1_mean": 0.3283630880385841,
+      "macro_f1_sd": 0.024622937565414643,
+      "accuracy_mean": 0.4702271332105587,
+      "accuracy_sd": 0.07023153321524156,
+      "macro_f1_seeds": [
+        0.3512110611360986,
+        0.3315940204030023,
+        0.3022841825766514
+      ],
+      "accuracy_seeds": [
+        0.48987108655616945,
+        0.39226519337016574,
+        0.5285451197053407
+      ],
+      "class_f1_mean": [
+        0.09980942250587245,
+        0.2923899239411067,
+        0.5928899176687733
+      ],
+      "class_counts": [
+        43,
+        158,
+        342
+      ]
+    },
+    {
+      "group": "Sarcastic",
+      "model": "both_product",
+      "n": 543,
+      "macro_f1_mean": 0.31860797367581856,
+      "macro_f1_sd": 0.002188647094746071,
+      "accuracy_mean": 0.40822590546347454,
+      "accuracy_sd": 0.015444746010324271,
+      "macro_f1_seeds": [
+        0.3161186448272779,
+        0.3202302722063452,
+        0.31947500399383244
+      ],
+      "accuracy_seeds": [
+        0.4180478821362799,
+        0.4162062615101289,
+        0.39042357274401474
+      ],
+      "class_f1_mean": [
+        0.12483377393254826,
+        0.31753717821669053,
+        0.5134529688782168
+      ],
+      "class_counts": [
+        43,
+        158,
+        342
+      ]
+    },
+    {
+      "group": "Not funny",
+      "model": "text",
+      "n": 157,
+      "macro_f1_mean": 0.326287303944649,
+      "macro_f1_sd": 0.047421590974785086,
+      "accuracy_mean": 0.4182590233545647,
+      "accuracy_sd": 0.03268535948692282,
+      "macro_f1_seeds": [
+        0.3256036912055611,
+        0.2792112150024329,
+        0.374047005625953
+      ],
+      "accuracy_seeds": [
+        0.3821656050955414,
+        0.445859872611465,
+        0.4267515923566879
+      ],
+      "class_f1_mean": [
+        0.1548456703255465,
+        0.3307413124422535,
+        0.49327492906614695
+      ],
+      "class_counts": [
+        14,
+        78,
+        65
+      ]
+    },
+    {
+      "group": "Not funny",
+      "model": "image",
+      "n": 157,
+      "macro_f1_mean": 0.287914155544932,
+      "macro_f1_sd": 0.015319226753743085,
+      "accuracy_mean": 0.3630573248407643,
+      "accuracy_sd": 0.041767124358611483,
+      "macro_f1_seeds": [
+        0.27612681515014864,
+        0.2823853626478012,
+        0.3052302888368462
+      ],
+      "accuracy_seeds": [
+        0.3184713375796178,
+        0.36942675159235666,
+        0.4012738853503185
+      ],
+      "class_f1_mean": [
+        0.09293394777265744,
+        0.30932614545923537,
+        0.4614823734029032
+      ],
+      "class_counts": [
+        14,
+        78,
+        65
+      ]
+    },
+    {
+      "group": "Not funny",
+      "model": "both_concat",
+      "n": 157,
+      "macro_f1_mean": 0.38530123117520915,
+      "macro_f1_sd": 0.03488994734933622,
+      "accuracy_mean": 0.4522292993630573,
+      "accuracy_sd": 0.04176712435861146,
+      "macro_f1_seeds": [
+        0.351278606626761,
+        0.4209982114911692,
+        0.3836268754076973
+      ],
+      "accuracy_seeds": [
+        0.4140127388535032,
+        0.4968152866242038,
+        0.445859872611465
+      ],
+      "class_f1_mean": [
+        0.19691119691119693,
+        0.49697245972643594,
+        0.4620200368879946
+      ],
+      "class_counts": [
+        14,
+        78,
+        65
+      ]
+    },
+    {
+      "group": "Not funny",
+      "model": "both_cross_attn",
+      "n": 157,
+      "macro_f1_mean": 0.2834391154092661,
+      "macro_f1_sd": 0.003122360562513252,
+      "accuracy_mean": 0.38641188959660305,
+      "accuracy_sd": 0.03268535948692285,
+      "macro_f1_seeds": [
+        0.28052912508702715,
+        0.2867375049193231,
+        0.28305071622144795
+      ],
+      "accuracy_seeds": [
+        0.39490445859872614,
+        0.3503184713375796,
+        0.4140127388535032
+      ],
+      "class_f1_mean": [
+        0.047619047619047616,
+        0.3989883038137118,
+        0.4037099947950387
+      ],
+      "class_counts": [
+        14,
+        78,
+        65
+      ]
+    },
+    {
+      "group": "Not funny",
+      "model": "both_product",
+      "n": 157,
+      "macro_f1_mean": 0.3604905789123349,
+      "macro_f1_sd": 0.03259587887252615,
+      "accuracy_mean": 0.42887473460721875,
+      "accuracy_sd": 0.036218093650174046,
+      "macro_f1_seeds": [
+        0.34096389261952176,
+        0.34238776496292095,
+        0.3981200791545619
+      ],
+      "accuracy_seeds": [
+        0.4394904458598726,
+        0.3885350318471338,
+        0.4585987261146497
+      ],
+      "class_f1_mean": [
+        0.19032800672834316,
+        0.48347732234225377,
+        0.40766640766640766
+      ],
+      "class_counts": [
+        14,
+        78,
+        65
+      ]
+    },
+    {
+      "group": "Humorous",
+      "model": "text",
+      "n": 543,
+      "macro_f1_mean": 0.2979444558397334,
+      "macro_f1_sd": 0.02173809705459557,
+      "accuracy_mean": 0.46838551258440764,
+      "accuracy_sd": 0.16390768441892267,
+      "macro_f1_seeds": [
+        0.31469928161191496,
+        0.27338057565645585,
+        0.3057535102508294
+      ],
+      "accuracy_seeds": [
+        0.3664825046040516,
+        0.6574585635359116,
+        0.3812154696132597
+      ],
+      "class_f1_mean": [
+        0.10635305383487448,
+        0.20176990209806792,
+        0.5857104115862578
+      ],
+      "class_counts": [
+        40,
+        140,
+        363
+      ]
+    },
+    {
+      "group": "Humorous",
+      "model": "image",
+      "n": 543,
+      "macro_f1_mean": 0.3097443620187488,
+      "macro_f1_sd": 0.026808718414181115,
+      "accuracy_mean": 0.4604051565377532,
+      "accuracy_sd": 0.06547472867267469,
+      "macro_f1_seeds": [
+        0.27948396816321347,
+        0.31922311614031523,
+        0.3305260017527177
+      ],
+      "accuracy_seeds": [
+        0.3867403314917127,
+        0.48250460405156537,
+        0.5119705340699816
+      ],
+      "class_f1_mean": [
+        0.06971559567304249,
+        0.24226918490168345,
+        0.6172483054815204
+      ],
+      "class_counts": [
+        40,
+        140,
+        363
+      ]
+    },
+    {
+      "group": "Humorous",
+      "model": "both_concat",
+      "n": 543,
+      "macro_f1_mean": 0.31505514184439404,
+      "macro_f1_sd": 0.0077988261057634475,
+      "accuracy_mean": 0.4192756292203806,
+      "accuracy_sd": 0.022277774477132056,
+      "macro_f1_seeds": [
+        0.3176904733357313,
+        0.3211948858082701,
+        0.30628006638918065
+      ],
+      "accuracy_seeds": [
+        0.39410681399631675,
+        0.427255985267035,
+        0.43646408839779005
+      ],
+      "class_f1_mean": [
+        0.1159845881495366,
+        0.2829243995216379,
+        0.5462564378620075
+      ],
+      "class_counts": [
+        40,
+        140,
+        363
+      ]
+    },
+    {
+      "group": "Humorous",
+      "model": "both_cross_attn",
+      "n": 543,
+      "macro_f1_mean": 0.3305622461953299,
+      "macro_f1_sd": 0.02872012702287264,
+      "accuracy_mean": 0.4910988336402701,
+      "accuracy_sd": 0.0759840559418123,
+      "macro_f1_seeds": [
+        0.3579972206239337,
+        0.3329797312396447,
+        0.3007097867224113
+      ],
+      "accuracy_seeds": [
+        0.5009208103130756,
+        0.4106813996316759,
+        0.5616942909760589
+      ],
+      "class_f1_mean": [
+        0.0964788067591806,
+        0.2720295545923499,
+        0.6231783772344591
+      ],
+      "class_counts": [
+        40,
+        140,
+        363
+      ]
+    },
+    {
+      "group": "Humorous",
+      "model": "both_product",
+      "n": 543,
+      "macro_f1_mean": 0.3018830926110217,
+      "macro_f1_sd": 0.008386921039637623,
+      "accuracy_mean": 0.4027010435850215,
+      "accuracy_sd": 0.025407246269582413,
+      "macro_f1_seeds": [
+        0.30262292100784816,
+        0.3098755904439875,
+        0.2931507663812294
+      ],
+      "accuracy_seeds": [
+        0.42173112338858193,
+        0.4125230202578269,
+        0.3738489871086556
+      ],
+      "class_f1_mean": [
+        0.0988573428178227,
+        0.2823031319224428,
+        0.5244888030927995
+      ],
+      "class_counts": [
+        40,
+        140,
+        363
+      ]
+    }
+  ],
+  "sarcasm_differences": [
+    {
+      "model": "both_concat",
+      "group": "Non-sarcastic",
+      "delta_macro_f1": 0.04564363681752531,
+      "ci95_low": -0.008531644020977999,
+      "ci95_high": 0.10180729498289308
+    },
+    {
+      "model": "both_concat",
+      "group": "Sarcastic",
+      "delta_macro_f1": 0.023141192442963532,
+      "ci95_low": -0.009579908836896186,
+      "ci95_high": 0.05649726172666499
+    },
+    {
+      "model": "both_cross_attn",
+      "group": "Non-sarcastic",
+      "delta_macro_f1": 0.028496657418644544,
+      "ci95_low": -0.021679058725934012,
+      "ci95_high": 0.0795427019896854
+    },
+    {
+      "model": "both_cross_attn",
+      "group": "Sarcastic",
+      "delta_macro_f1": 0.012821898793513142,
+      "ci95_low": -0.014854440859378735,
+      "ci95_high": 0.04151746606692687
+    },
+    {
+      "model": "both_product",
+      "group": "Non-sarcastic",
+      "delta_macro_f1": 0.03728870165228698,
+      "ci95_low": -0.014323239176592562,
+      "ci95_high": 0.09149536503049215
+    },
+    {
+      "model": "both_product",
+      "group": "Sarcastic",
+      "delta_macro_f1": 0.0030667844307475933,
+      "ci95_low": -0.029085601098549792,
+      "ci95_high": 0.035841321203134026
+    }
+  ],
+  "sarcasm_interactions": [
+    {
+      "model": "both_concat",
+      "delta_sarcastic_minus_nonsarcastic": -0.02250244437456178,
+      "ci95_low": -0.08773871121661586,
+      "ci95_high": 0.04181366131352246
+    },
+    {
+      "model": "both_cross_attn",
+      "delta_sarcastic_minus_nonsarcastic": -0.015674758625131402,
+      "ci95_low": -0.07327443965359874,
+      "ci95_high": 0.04229273190978114
+    },
+    {
+      "model": "both_product",
+      "delta_sarcastic_minus_nonsarcastic": -0.03422191722153939,
+      "ci95_low": -0.09754464450074153,
+      "ci95_high": 0.027438793039184096
+    }
+  ],
+  "error_transitions": [
+    {
+      "model": "both_concat",
+      "gains_mean": 134.66666666666666,
+      "losses_mean": 156.0,
+      "gains_seeds": [
+        164,
+        102,
+        138
+      ],
+      "losses_seeds": [
+        144,
+        219,
+        105
+      ]
+    },
+    {
+      "model": "both_cross_attn",
+      "gains_mean": 170.33333333333334,
+      "losses_mean": 163.0,
+      "gains_seeds": [
+        200,
+        104,
+        207
+      ],
+      "losses_seeds": [
+        125,
+        253,
+        111
+      ]
+    },
+    {
+      "model": "both_product",
+      "gains_mean": 133.0,
+      "losses_mean": 167.0,
+      "gains_seeds": [
+        178,
+        81,
+        140
+      ],
+      "losses_seeds": [
+        139,
+        223,
+        139
+      ]
+    }
+  ],
+  "modality_complementarity": [
+    {
+      "state": "text_only_correct",
+      "n_mean_per_seed": 158.66666666666666,
+      "n_seeds": [
+        173,
+        169,
+        134
+      ],
+      "decision_count": 476,
+      "share_mean": 0.22666666666666666,
+      "both_concat_correct_rate": 0.4117647058823529,
+      "both_cross_attn_correct_rate": 0.43067226890756305,
+      "both_product_correct_rate": 0.43907563025210083
+    },
+    {
+      "state": "image_only_correct",
+      "n_mean_per_seed": 145.66666666666666,
+      "n_seeds": [
+        174,
+        62,
+        201
+      ],
+      "decision_count": 437,
+      "share_mean": 0.20809523809523808,
+      "both_concat_correct_rate": 0.4416475972540046,
+      "both_cross_attn_correct_rate": 0.5697940503432495,
+      "both_product_correct_rate": 0.4096109839816934
+    },
+    {
+      "state": "both_correct",
+      "n_mean_per_seed": 161.33333333333334,
+      "n_seeds": [
+        86,
+        258,
+        140
+      ],
+      "decision_count": 484,
+      "share_mean": 0.2304761904761905,
+      "both_concat_correct_rate": 0.6115702479338843,
+      "both_cross_attn_correct_rate": 0.5495867768595041,
+      "both_product_correct_rate": 0.5165289256198347
+    },
+    {
+      "state": "both_wrong",
+      "n_mean_per_seed": 234.33333333333334,
+      "n_seeds": [
+        267,
+        211,
+        225
+      ],
+      "decision_count": 703,
+      "share_mean": 0.33476190476190476,
+      "both_concat_correct_rate": 0.30014224751066854,
+      "both_cross_attn_correct_rate": 0.37268847795163584,
+      "both_product_correct_rate": 0.3129445234708393
+    }
+  ],
+  "error_candidates": [
+    {
+      "id": "test_00239",
+      "category": "Fusion hurts",
+      "gold": 1,
+      "sarcasm": "general",
+      "humor": "very_funny",
+      "text": 1,
+      "image": 0,
+      "both_concat": 0,
+      "both_cross_attn": 2,
+      "both_product": 0,
+      "concat_confidence": 0.815293530623118
+    },
+    {
+      "id": "test_00343",
+      "category": "Fusion hurts",
+      "gold": 2,
+      "sarcasm": "general",
+      "humor": "funny",
+      "text": 2,
+      "image": 1,
+      "both_concat": 1,
+      "both_cross_attn": 1,
+      "both_product": 1,
+      "concat_confidence": 0.6469816366831461
+    },
+    {
+      "id": "test_00662",
+      "category": "Fusion hurts",
+      "gold": 2,
+      "sarcasm": "twisted_meaning",
+      "humor": "funny",
+      "text": 2,
+      "image": 2,
+      "both_concat": 1,
+      "both_cross_attn": 1,
+      "both_product": 1,
+      "concat_confidence": 0.6394634048144022
+    },
+    {
+      "id": "test_00597",
+      "category": "Fusion hurts",
+      "gold": 2,
+      "sarcasm": "general",
+      "humor": "funny",
+      "text": 2,
+      "image": 2,
+      "both_concat": 1,
+      "both_cross_attn": 1,
+      "both_product": 2,
+      "concat_confidence": 0.6159197390079498
+    },
+    {
+      "id": "test_00221",
+      "category": "Fusion hurts",
+      "gold": 2,
+      "sarcasm": "not_sarcastic",
+      "humor": "funny",
+      "text": 2,
+      "image": 1,
+      "both_concat": 1,
+      "both_cross_attn": 1,
+      "both_product": 1,
+      "concat_confidence": 0.6155522465705872
+    },
+    {
+      "id": "test_00045",
+      "category": "Fusion hurts",
+      "gold": 2,
+      "sarcasm": "twisted_meaning",
+      "humor": "very_funny",
+      "text": 2,
+      "image": 2,
+      "both_concat": 1,
+      "both_cross_attn": 1,
+      "both_product": 1,
+      "concat_confidence": 0.6154791315396627
+    },
+    {
+      "id": "test_00194",
+      "category": "Fusion helps",
+      "gold": 2,
+      "sarcasm": "not_sarcastic",
+      "humor": "very_funny",
+      "text": 0,
+      "image": 2,
+      "both_concat": 2,
+      "both_cross_attn": 2,
+      "both_product": 2,
+      "concat_confidence": 0.684221625328064
+    },
+    {
+      "id": "test_00043",
+      "category": "Fusion helps",
+      "gold": 1,
+      "sarcasm": "general",
+      "humor": "not_funny",
+      "text": 2,
+      "image": 2,
+      "both_concat": 1,
+      "both_cross_attn": 1,
+      "both_product": 1,
+      "concat_confidence": 0.6478625138600668
+    },
+    {
+      "id": "test_00506",
+      "category": "Fusion helps",
+      "gold": 2,
+      "sarcasm": "twisted_meaning",
+      "humor": "funny",
+      "text": 1,
+      "image": 2,
+      "both_concat": 2,
+      "both_cross_attn": 2,
+      "both_product": 2,
+      "concat_confidence": 0.6451316873232523
+    },
+    {
+      "id": "test_00292",
+      "category": "Fusion helps",
+      "gold": 2,
+      "sarcasm": "very_twisted",
+      "humor": "hilarious",
+      "text": 0,
+      "image": 0,
+      "both_concat": 2,
+      "both_cross_attn": 2,
+      "both_product": 2,
+      "concat_confidence": 0.6332021752993265
+    },
+    {
+      "id": "test_00228",
+      "category": "Fusion helps",
+      "gold": 2,
+      "sarcasm": "general",
+      "humor": "not_funny",
+      "text": 1,
+      "image": 2,
+      "both_concat": 2,
+      "both_cross_attn": 1,
+      "both_product": 2,
+      "concat_confidence": 0.6251208782196045
+    },
+    {
+      "id": "test_00344",
+      "category": "Fusion helps",
+      "gold": 1,
+      "sarcasm": "not_sarcastic",
+      "humor": "funny",
+      "text": 2,
+      "image": 1,
+      "both_concat": 1,
+      "both_cross_attn": 2,
+      "both_product": 1,
+      "concat_confidence": 0.6250659028689066
+    },
+    {
+      "id": "test_00423",
+      "category": "All five wrong",
+      "gold": 1,
+      "sarcasm": "general",
+      "humor": "funny",
+      "text": 0,
+      "image": 0,
+      "both_concat": 0,
+      "both_cross_attn": 0,
+      "both_product": 0,
+      "concat_confidence": 0.8512330253918966
+    },
+    {
+      "id": "test_00557",
+      "category": "All five wrong",
+      "gold": 1,
+      "sarcasm": "not_sarcastic",
+      "humor": "funny",
+      "text": 0,
+      "image": 0,
+      "both_concat": 0,
+      "both_cross_attn": 2,
+      "both_product": 0,
+      "concat_confidence": 0.843216061592102
+    },
+    {
+      "id": "test_00091",
+      "category": "All five wrong",
+      "gold": 2,
+      "sarcasm": "general",
+      "humor": "not_funny",
+      "text": 0,
+      "image": 0,
+      "both_concat": 0,
+      "both_cross_attn": 0,
+      "both_product": 0,
+      "concat_confidence": 0.8410190542538961
+    },
+    {
+      "id": "test_00233",
+      "category": "All five wrong",
+      "gold": 1,
+      "sarcasm": "twisted_meaning",
+      "humor": "hilarious",
+      "text": 0,
+      "image": 2,
+      "both_concat": 0,
+      "both_cross_attn": 0,
+      "both_product": 0,
+      "concat_confidence": 0.7939372261365255
+    },
+    {
+      "id": "test_00424",
+      "category": "All five wrong",
+      "gold": 1,
+      "sarcasm": "not_sarcastic",
+      "humor": "not_funny",
+      "text": 0,
+      "image": 2,
+      "both_concat": 0,
+      "both_cross_attn": 2,
+      "both_product": 2,
+      "concat_confidence": 0.7253341376781464
+    },
+    {
+      "id": "test_00695",
+      "category": "All five wrong",
+      "gold": 1,
+      "sarcasm": "twisted_meaning",
+      "humor": "very_funny",
+      "text": 2,
+      "image": 2,
+      "both_concat": 2,
+      "both_cross_attn": 2,
+      "both_product": 2,
+      "concat_confidence": 0.6932351390520731
+    },
+    {
+      "id": "test_00148",
+      "category": "All five wrong",
+      "gold": 1,
+      "sarcasm": "general",
+      "humor": "very_funny",
+      "text": 2,
+      "image": 2,
+      "both_concat": 0,
+      "both_cross_attn": 2,
+      "both_product": 2,
+      "concat_confidence": 0.6872515082359314
+    },
+    {
+      "id": "test_00085",
+      "category": "All five wrong",
+      "gold": 2,
+      "sarcasm": "general",
+      "humor": "funny",
+      "text": 1,
+      "image": 1,
+      "both_concat": 1,
+      "both_cross_attn": 1,
+      "both_product": 1,
+      "concat_confidence": 0.6739750107129415
+    }
+  ],
+  "confusion_matrices": [
+    {
+      "model": "text",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 17
+    },
+    {
+      "model": "text",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 19
+    },
+    {
+      "model": "text",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 18
+    },
+    {
+      "model": "text",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 50
+    },
+    {
+      "model": "text",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 90
+    },
+    {
+      "model": "text",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 78
+    },
+    {
+      "model": "text",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 81
+    },
+    {
+      "model": "text",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 195
+    },
+    {
+      "model": "text",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 152
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 1
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 1
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 52
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 2
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 7
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 209
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 2
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 7
+    },
+    {
+      "model": "text",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 419
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 14
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 20
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 20
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 38
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 77
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 103
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 73
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 172
+    },
+    {
+      "model": "text",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 183
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 11
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 11
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 32
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 58
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 41
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 119
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 131
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 89
+    },
+    {
+      "model": "image",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 208
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 5
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 12
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 37
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 24
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 53
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 141
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 42
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 124
+    },
+    {
+      "model": "image",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 262
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 3
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 21
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 30
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 16
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 63
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 139
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 30
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 123
+    },
+    {
+      "model": "image",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 275
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 11
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 24
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 19
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 36
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 98
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 84
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 56
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 202
+    },
+    {
+      "model": "both_concat",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 170
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 9
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 20
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 25
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 22
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 90
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 106
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 40
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 177
+    },
+    {
+      "model": "both_concat",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 211
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 7
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 22
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 25
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 21
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 77
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 120
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 34
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 171
+    },
+    {
+      "model": "both_concat",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 223
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 4
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 17
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 33
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 12
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 84
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 122
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 16
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 166
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 246
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 11
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 27
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 16
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 28
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 96
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 94
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 42
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 215
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 171
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 0
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 14
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 40
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 4
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 45
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 169
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 9
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 94
+    },
+    {
+      "model": "both_cross_attn",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 325
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 5
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 25
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 24
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 14
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 81
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 123
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 20
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 196
+    },
+    {
+      "model": "both_product",
+      "seed": 0,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 212
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 11
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 17
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 26
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 44
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 69
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 105
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 81
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 142
+    },
+    {
+      "model": "both_product",
+      "seed": 1,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 205
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Negative",
+      "count": 8
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Neutral",
+      "count": 31
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "actual": "Negative",
+      "predicted": "Positive",
+      "count": 15
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Negative",
+      "count": 21
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Neutral",
+      "count": 124
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "actual": "Neutral",
+      "predicted": "Positive",
+      "count": 73
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Negative",
+      "count": 32
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Neutral",
+      "count": 253
+    },
+    {
+      "model": "both_product",
+      "seed": 2,
+      "actual": "Positive",
+      "predicted": "Positive",
+      "count": 143
+    }
+  ]
+}

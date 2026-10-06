@@ -1,0 +1,17 @@
+{
+  "dataset": "Ahren09/MMSoc_Memotion",
+  "config": "default",
+  "split": "test",
+  "rows": 700,
+  "dataset_revision": "cdb15b61d84d56db73e0e59535dfea81ea3c22f4",
+  "source": "https://datasets-server.huggingface.co/rows",
+  "sha256": "9fd037420670e5e2c15837cba7bf3d6b5f35df092398637c8a5ec30e7c31fe1f",
+  "fields": [
+    "id",
+    "label",
+    "text",
+    "humor",
+    "sarcasm",
+    "motivational"
+  ]
+}
