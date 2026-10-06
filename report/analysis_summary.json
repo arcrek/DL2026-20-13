@@ -1,6 +1,6 @@
 {
   "input_manifest": {
-    "input_commit": "9fa27c269bd542b74d342636a6c634700a1d6e28",
+    "input_commit": "63fe432e5e5350d4afd6b9f1a00d8e140340da40",
     "result_sha256": {
       "text_seed0.json": "b7d07dce978da9f2422d13785af97e0a99f5b1de8c23e862d7454aba667d81ee",
       "text_seed1.json": "c0bf714b98d7c629e22bc02d739fd4043adb35b8a1bd44af6be993163df5010f",
@@ -26,7 +26,7 @@
     "bootstrap": "class-stratified paired meme bootstrap, conditional on saved trained models",
     "permutation": "two-sided, swap all seeds together within each meme",
     "multiple_testing": "Holm: 6 primary comparisons; 4 exploratory comparisons separately",
-    "metadata_sha256": "9fd037420670e5e2c15837cba7bf3d6b5f35df092398637c8a5ec30e7c31fe1f",
+    "metadata_sha256": "bd73fc76f5672675ab34e9f6d368c671fc21026f4c79d9336d030f40165002f0",
     "metadata_source": {
       "dataset": "Ahren09/MMSoc_Memotion",
       "config": "default",
