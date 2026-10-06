@@ -51,7 +51,11 @@ Memes frequently share the same underlying visual template with altered text cap
 
 ### Class-Weighted Loss Schedule
 Because positive samples outnumber negative samples by more than 6:1, inverse-frequency class weights $w_c$ are calculated over the 5,034 fit samples:
-$$w_c = \frac{N_{\text{fit}}}{C \cdot N_{c, \text{fit}}}$$
+
+$$
+w_c = \frac{N_{\text{fit}}}{C \cdot N_{c, \text{fit}}}
+$$
+
 where $C = 3$ is the number of classes. The resulting weights applied during PyTorch cross-entropy loss are:
 - `Negative (0):` $\approx 3.66$
 - `Neutral (1):` $\approx 1.06$
@@ -67,7 +71,20 @@ The preprocessing pipeline is implemented in [`src/preprocessing.py`](src/prepro
 
 ### Step 1: Label Consolidation & Field Organization
 Raw Memotion annotations classify sentiment across a 5-point scale (`very_positive`, `positive`, `neutral`, `negative`, `very_negative`). These are consolidated into 3 target classes:
-$$y_{\text{norm}} = \begin{cases} \text{positive}, & y_{\text{raw}} \in \{\text{very\_positive}, \text{positive}, \text{pos}\} \\ \text{neutral}, & y_{\text{raw}} \in \{\text{neutral}, \text{neu}\} \\ \text{negative}, & y_{\text{raw}} \in \{\text{very\_negative}, \text{negative}, \text{neg}\} \end{cases}$$
+
+$$
+y_{\text{norm}} = \begin{cases}
+\text{positive}, & y_{\text{raw}} \in \{\text{very\_positive}, \text{positive}, \text{pos}\} \\
+\text{neutral},  & y_{\text{raw}} \in \{\text{neutral}, \text{neu}\} \\
+\text{negative}, & y_{\text{raw}} \in \{\text{very\_negative}, \text{negative}, \text{neg}\}
+\end{cases}
+$$
+
+| Target Class (Normalized) | Integer ID | Raw SemEval-2020 Labels |
+|---|:---:|---|
+| `positive` | 2 | `very_positive`, `positive`, `pos` |
+| `neutral`  | 1 | `neutral`, `neu` |
+| `negative` | 0 | `very_negative`, `negative`, `neg` |
 
 **Text Selection Rule:**
 Only human-corrected text captions (`text_corrected`, saved as `text`) are used. Raw OCR output (`text_ocr`) contains high character error rates, merged words, and layout artifacts that degrade model representations. `tests/test_data.py` asserts that `text_ocr` is never consumed by training loaders.
