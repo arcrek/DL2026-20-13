@@ -289,3 +289,21 @@ def load_raw_memotion_df(
                         "id": r.get("id"),
                     })
     return pd.DataFrame(records)
+
+
+if __name__ == "__main__":
+    print("Testing data preprocessing pipeline on local Memotion dataset...")
+    df_raw = load_raw_memotion_df()
+    print(f"Loaded {len(df_raw)} raw records across splits.")
+    img_dir = os.path.join(DEFAULT_DATA_DIR, "img")
+    clean_df = preprocess_memotion(
+        df=df_raw,
+        image_dir=img_dir,
+        text_col="text_corrected",
+        label_col="overall_sentiment",
+        image_col="image_name",
+        verbose=True,
+    )
+    print(f"Preprocessing completed successfully: {len(clean_df)} clean samples retained.")
+    print(f"Class distribution: {dict(clean_df['label_name'].value_counts())}")
+
