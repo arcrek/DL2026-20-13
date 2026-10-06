@@ -35,7 +35,11 @@ Each sample contains:
 
 - **Text field:** Only `text_corrected` (human-corrected) is used, stored as `text` in the local JSONL. `text_ocr` is never read; `tests/test_data.py` asserts this.
 - **Class weights:** Inverse-frequency, `n / (3 * count_c)`, computed on the fit subset and stored in `features/train_holdout.json` (`class_weights`). Train is imbalanced (~9% / 31% / 59%).
-- **Leakage control:** Groups merge memes sharing a normalized caption or an identical image (MD5). A whole group lands in either fit or hold-out.
+
+- **Preprocessing Pipeline (`src/preprocessing.py`):**
+  - **3.1 Clean DataFrame & Label Normalization:** Consolidate 5 sentiment levels into 3 target classes (`positive`, `neutral`, `negative`) and retain 3 primary columns (`text`, `image_path`, `label_name`), discarding samples missing images or labels.
+  - **3.2 Filter Corrupted Images:** Verify images via `PIL.Image.verify()` and RGB conversion to drop truncated files (e.g. `train_04578.png`), avoiding `OSError: image file is truncated` during DataLoader batching.
+  - **3.3 Encode Labels to Numeric IDs:** Map string classes to integer IDs (`negative`: 0, `neutral`: 1, `positive`: 2) for PyTorch training.
 
 ## 5. Reproduction Instructions
 ```bash
