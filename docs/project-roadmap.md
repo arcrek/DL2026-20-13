@@ -89,6 +89,6 @@ Tài liệu này xác định lộ trình nghiên cứu, triển khai và đánh
 ## 3. Bản đồ Điều hướng & Quyền quản lý (Navigation & Ownership)
 
 * **Quy chuẩn dữ liệu & Phân tách:** Quản lý tại [`DATA.md`](file:///home/arcrek/workspace/dl2026/DATA.md) và thực thi bởi [`src/data.py`](file:///home/arcrek/workspace/dl2026/src/data.py).
-* **Huấn luyện mô hình:** Thực thi tại [`src/models/`](file:///home/arcrek/workspace/dl2026/src/models/) và các runner (như [`src/text.py`](file:///home/arcrek/workspace/dl2026/src/text.py)).
+* **Huấn luyện mô hình:** Thực thi tại [`src/models/`](file:///home/arcrek/workspace/dl2026/src/models/) và các runner (như [`src/text.py`](file:///home/arcrek/workspace/dl2026/src/text.py), [`src/image.py`](file:///home/arcrek/workspace/dl2026/src/image.py)).
 * **Kế hoạch gốc:** [`plans/20261001-0830-meme-understanding-modality-study/plan.md`](file:///home/arcrek/workspace/dl2026/plans/20261001-0830-meme-understanding-modality-study/plan.md).
 * **Notebook tương tác:** [`notebooks/meme_understanding.ipynb`](file:///home/arcrek/workspace/dl2026/notebooks/meme_understanding.ipynb).

@@ -42,23 +42,23 @@ Evaluation metrics on the test split (700 samples) across three independent rand
 
 | Run / Seed | Best Epoch (Holdout) | Holdout Macro-F1 | Test Accuracy | Test Macro-F1 | File Status |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Seed 0** | Epoch 2 | 0.3337 | 0.3914 | **0.3283** | `results/text_seed0.json` |
-| **Seed 1** | Epoch 5 | 0.2942 | 0.3543 | **0.2988** | `results/text_seed1.json` |
-| **Seed 2** | Epoch 1 | 0.3426 | 0.5500 | **0.3677** | `results/text_seed2.json` |
-| **Mean ± Std** | — | **0.3235 ± 0.0258** | **0.4319 ± 0.1039** | **0.3316 ± 0.0346** | Validated Schema v1 |
+| **Seed 0** | Epoch 2 | 0.3539 | 0.3700 | **0.3209** | `results/text_seed0.json` |
+| **Seed 1** | Epoch 1 | 0.2832 | 0.6100 | **0.2834** | `results/text_seed1.json` |
+| **Seed 2** | Epoch 5 | 0.3442 | 0.3914 | **0.3238** | `results/text_seed2.json` |
+| **Mean ± Std** | — | **0.3271 ± 0.0383** | **0.4571 ± 0.1328** | **0.3094 ± 0.0225** | Validated Schema v1 |
 
-*(Note: Sample standard deviation calculated with $ddof=1$. Population standard deviation with $ddof=0$ yields Accuracy $0.4319 \pm 0.0849$ and Macro-F1 $0.3316 \pm 0.0282$)*.
+*(Note: Sample standard deviation calculated with $ddof=1$. Population standard deviation with $ddof=0$ yields Accuracy $0.4571 \pm 0.1084$ and Macro-F1 $0.3094 \pm 0.0184$)*.
 
 ---
 
 ## 4. Key Findings & Error Patterns
 
 1. **Convergence Characteristics of BERT on Meme Text:**
-   - On **Seed 2**, the model attained peak Macro-F1 (0.3677) and Accuracy (0.5500) as early as **Epoch 1**. This demonstrates the strong pre-trained semantic representations of BERT: fine-tuning the upper layers allows rapid adaptation without prolonged training epochs.
+   - On **Seed 1**, the model attained peak Holdout Macro-F1 (0.2832) as early as **Epoch 1**, while **Seed 0** peaked at **Epoch 2** (0.3539) and **Seed 2** peaked at **Epoch 5** (0.3442). This demonstrates the strong pre-trained semantic representations of BERT: fine-tuning allows rapid adaptation without requiring extensive epochs.
 2. **Class Imbalance Challenges:**
-   - Despite utilizing `class_weights`, the minority Negative class (~9%) remains the primary bottleneck, constraining average Macro-F1 to ~0.33. Text-only models frequently confuse Negative and Neutral instances when sarcastic memes deploy superficially positive or neutral phrasing.
+   - Despite utilizing `class_weights`, the minority Negative class (~9%) remains the primary bottleneck, constraining average Macro-F1 to ~0.31. Text-only models frequently confuse Negative and Neutral instances when sarcastic memes deploy superficially positive or neutral phrasing.
 3. **Value as a Modality Baseline:**
-   - These findings establish a rigorous baseline for **Role E (Analysis)** to perform hypothesis testing (**Paired Bootstrap / Permutation Test**): evaluating whether Multimodal Fusion (Role D) achieves statistically significant improvements ($p < 0.05$) over the text-only Macro-F1 baseline of 0.3316.
+   - These findings establish a rigorous baseline for **Role E (Analysis)** to perform hypothesis testing (**Paired Bootstrap / Permutation Test**): evaluating whether Multimodal Fusion (Role D) achieves statistically significant improvements ($p < 0.05$) over the text-only Macro-F1 baseline of 0.3094.
 
 ---
 

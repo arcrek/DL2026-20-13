@@ -86,21 +86,41 @@ def make_collate_fn(tokenizer, max_length=128):
     return collate_fn
 
 
+def build_loss_and_optimizer(model, cfg, class_weights, total_steps, device):
+    loss_fn = nn.CrossEntropyLoss(weight=class_weights.to(device))
+    optimizer = torch.optim.AdamW([
+        {"params": model.backbone_params(), "lr": cfg["lr_backbone"]},
+        {"params": model.head_params(), "lr": cfg["lr_head"]}
+    ], weight_decay=cfg.get("weight_decay", 0.01))
+
+    warmup_steps = int(0.10 * total_steps)
+    scheduler = torch.optim.lr_scheduler.LambdaLR(
+        optimizer,
+        lambda s: min(1.0, (s + 1) / max(1, warmup_steps)) * max(0.0, (total_steps - s) / max(1, total_steps))
+    )
+    return loss_fn, optimizer, scheduler
+
+
 @torch.no_grad()
-def evaluate_split(model, loader, device):
+def evaluate(model, loader, device, loss_fn=None):
     model.eval()
     all_probs, all_ys, all_ids, all_sarcasms = [], [], [], []
+    total_loss = 0.0
+    autocast_dtype = torch.bfloat16 if (torch.cuda.is_available() and hasattr(torch.cuda, "is_bf16_supported") and torch.cuda.is_bf16_supported()) else torch.float16
+
     for batch in loader:
         ids = batch["ids"]
         input_ids = batch["input_ids"].to(device)
         mask = batch["attention_mask"].to(device)
         labels = batch["labels"].to(device)
 
-        autocast_dtype = torch.bfloat16 if (torch.cuda.is_available() and hasattr(torch.cuda, "is_bf16_supported") and torch.cuda.is_bf16_supported()) else torch.float16
         with torch.autocast("cuda", dtype=autocast_dtype, enabled=(device == "cuda")):
             logits = model(input_ids, mask)
-        probs = torch.softmax(logits.float(), dim=-1).cpu().numpy()
+            if loss_fn is not None:
+                loss = loss_fn(logits.float(), labels)
+                total_loss += loss.item()
 
+        probs = torch.softmax(logits.float(), dim=-1).cpu().numpy()
         all_probs.append(probs)
         all_ys.append(labels.cpu().numpy())
         all_ids.extend(ids)
@@ -112,9 +132,11 @@ def evaluate_split(model, loader, device):
 
     macro_f1 = float(f1_score(ys_arr, preds, average="macro", zero_division=0))
     acc = float(accuracy_score(ys_arr, preds))
+    avg_loss = total_loss / len(loader) if loss_fn is not None else 0.0
     return {
         "macro_f1": macro_f1,
         "acc": acc,
+        "loss": avg_loss,
         "probs": probs_arr,
         "y_true": ys_arr,
         "ids": all_ids,
@@ -122,7 +144,40 @@ def evaluate_split(model, loader, device):
     }
 
 
-def train_seed(seed, cfg, device="cuda"):
+evaluate_split = evaluate
+
+
+def train_epoch(model, loader, loss_fn, optimizer, scheduler, device, epoch_idx, total_epochs, seed):
+    model.train()
+    total_loss = 0.0
+    total_batches = len(loader)
+    autocast_dtype = torch.bfloat16 if (torch.cuda.is_available() and hasattr(torch.cuda, "is_bf16_supported") and torch.cuda.is_bf16_supported()) else torch.float16
+
+    for step, batch in enumerate(loader, 1):
+        input_ids = batch["input_ids"].to(device)
+        mask = batch["attention_mask"].to(device)
+        labels = batch["labels"].to(device)
+
+        optimizer.zero_grad()
+        with torch.autocast("cuda", dtype=autocast_dtype, enabled=(device == "cuda")):
+            logits = model(input_ids, mask)
+            loss = loss_fn(logits.float(), labels)
+
+        loss.backward()
+        nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        optimizer.step()
+        scheduler.step()
+        total_loss += loss.item()
+
+        log_interval = 15 if device == "cpu" else 30
+        if step % log_interval == 0 or step == total_batches:
+            pct = (step / total_batches) * 100
+            print(f"[Seed {seed} | Ep {epoch_idx+1:02d}/{total_epochs:02d}] Batch {step:03d}/{total_batches} ({pct:5.1f}%) | Loss: {total_loss / step:.4f}", flush=True)
+
+    return total_loss / total_batches
+
+
+def train_loop(seed, cfg, device="cuda"):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -141,8 +196,7 @@ def train_seed(seed, cfg, device="cuda"):
     holdout_rows = [train_rows[i] for i in ho["holdout"]]
     test_rows = load_jsonl("test", data_dir=cfg.get("data_dir", DATA_DIR))
 
-    class_weights = torch.tensor(ho["class_weights"], dtype=torch.float).to(device)
-    loss_fn = nn.CrossEntropyLoss(weight=class_weights)
+    class_weights = torch.tensor(ho["class_weights"], dtype=torch.float)
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     collate = make_collate_fn(tokenizer, max_length=cfg.get("max_length", 128))
@@ -172,50 +226,16 @@ def train_seed(seed, cfg, device="cuda"):
     )
 
     model = BertMemeClassifier(MODEL_NAME, num_classes=NUM_CLASSES, dropout=cfg.get("dropout", 0.2)).to(device)
-    optimizer = torch.optim.AdamW([
-        {"params": model.backbone_params(), "lr": cfg["lr_backbone"]},
-        {"params": model.head_params(), "lr": cfg["lr_head"]}
-    ], weight_decay=cfg.get("weight_decay", 0.01))
-
     total_steps = cfg["epochs"] * len(fit_loader)
-    warmup_steps = int(0.10 * total_steps)
-    scheduler = torch.optim.lr_scheduler.LambdaLR(
-        optimizer,
-        lambda s: min(1.0, (s + 1) / max(1, warmup_steps)) * max(0.0, (total_steps - s) / max(1, total_steps))
-    )
+    loss_fn, optimizer, scheduler = build_loss_and_optimizer(model, cfg, class_weights, total_steps, device)
 
     best_f1 = -1.0
     best_epoch = -1
     best_state = None
 
-    total_batches = len(fit_loader)
     for ep in range(cfg["epochs"]):
-        model.train()
-        total_loss = 0.0
-        for step, batch in enumerate(fit_loader, 1):
-            input_ids = batch["input_ids"].to(device)
-            mask = batch["attention_mask"].to(device)
-            labels = batch["labels"].to(device)
-
-            optimizer.zero_grad()
-            autocast_dtype = torch.bfloat16 if (torch.cuda.is_available() and hasattr(torch.cuda, "is_bf16_supported") and torch.cuda.is_bf16_supported()) else torch.float16
-            with torch.autocast("cuda", dtype=autocast_dtype, enabled=(device == "cuda")):
-                logits = model(input_ids, mask)
-                loss = loss_fn(logits.float(), labels)
-
-            loss.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            optimizer.step()
-            scheduler.step()
-            total_loss += loss.item()
-
-            log_interval = 15 if device == "cpu" else 30
-            if step % log_interval == 0 or step == total_batches:
-                pct = (step / total_batches) * 100
-                print(f"[Seed {seed} | Ep {ep+1:02d}/{cfg['epochs']:02d}] Batch {step:03d}/{total_batches} ({pct:5.1f}%) | Loss: {total_loss / step:.4f}", flush=True)
-
-        avg_loss = total_loss / total_batches
-        eval_ho = evaluate_split(model, holdout_loader, device)
+        avg_loss = train_epoch(model, fit_loader, loss_fn, optimizer, scheduler, device, ep, cfg["epochs"], seed)
+        eval_ho = evaluate(model, holdout_loader, device, loss_fn)
         ho_f1 = eval_ho["macro_f1"]
         ho_acc = eval_ho["acc"]
 
@@ -229,7 +249,7 @@ def train_seed(seed, cfg, device="cuda"):
     print(f"[Seed {seed}] Best Epoch: {best_epoch} | Holdout Macro-F1: {best_f1:.4f}")
 
     model.load_state_dict(best_state)
-    test_eval = evaluate_split(model, test_loader, device)
+    test_eval = evaluate(model, test_loader, device)
 
     res_dir = cfg.get("results_dir", RESULTS_DIR)
     out_path = save_results(
@@ -257,6 +277,9 @@ def train_seed(seed, cfg, device="cuda"):
         torch.cuda.empty_cache()
 
     return test_eval["macro_f1"], test_eval["acc"]
+
+
+train_seed = train_loop
 
 
 def main():
@@ -288,7 +311,7 @@ def main():
 
     f1_list, acc_list = [], []
     for s in args.seeds:
-        f1, acc = train_seed(s, cfg, device=device)
+        f1, acc = train_loop(s, cfg, device=device)
         f1_list.append(f1)
         acc_list.append(acc)
 
