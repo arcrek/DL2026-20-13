@@ -393,6 +393,12 @@ def test_fusion_args():
     assert args.batch_size == 16
     assert args.workers == 2
 
+    args_all = fusion.FusionArgs(config="all", seeds=[0], epochs=1, batch_size=8)
+    assert args_all.config == "all"
+    assert args_all.seeds == [0]
+    assert args_all.epochs == 1
+    assert args_all.batch_size == 8
+
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))

@@ -528,7 +528,7 @@ def evaluate_split(model, loader, device):
     }
 
 
-def train_seed(config_name, seed, cfg, device="cuda"):
+def train_seed(config_name, seed, cfg, device="cuda", data_df=None):
     """Train one fusion configuration with a specified random seed."""
     random.seed(seed)
     np.random.seed(seed)
@@ -544,10 +544,27 @@ def train_seed(config_name, seed, cfg, device="cuda"):
         ho = json.load(f)
 
     data_dir = cfg.get("data_dir", DATA_DIR)
-    train_rows = {r["id"]: r for r in load_jsonl("train", data_dir=data_dir)}
-    fit_rows = [train_rows[i] for i in ho["fit"]]
-    holdout_rows = [train_rows[i] for i in ho["holdout"]]
+
+    if data_df is not None:
+        records = data_df.to_dict("records")
+        train_rows = {str(r.get("id", i)): r for i, r in enumerate(records)}
+    else:
+        train_rows = {r["id"]: r for r in load_jsonl("train", data_dir=data_dir)}
+
+    fit_rows = [train_rows[i] for i in ho["fit"] if i in train_rows]
+    holdout_rows = [train_rows[i] for i in ho["holdout"] if i in train_rows]
     test_rows = load_jsonl("test", data_dir=data_dir)
+
+    # Preprocessing integrity check: filter corrupted/missing images
+    if is_valid_image is not None:
+        bad_fit = [
+            r["id"]
+            for r in fit_rows
+            if not is_valid_image(r.get("image_path", os.path.join(data_dir, r.get("img", ""))))
+        ]
+        if bad_fit:
+            print(f"[{config_name} | Seed {seed}] Preprocessing: filtered {len(bad_fit)} corrupted/missing images from fit set.")
+            fit_rows = [r for r in fit_rows if r["id"] not in bad_fit]
 
     class_weights = torch.tensor(ho["class_weights"], dtype=torch.float).to(device)
     loss_fn = nn.CrossEntropyLoss(weight=class_weights)
@@ -735,7 +752,7 @@ class FusionArgs:
         self.results_dir = results_dir or os.environ.get("RESULTS_DIR", RESULTS_DIR)
 
 
-def run_training(args=None, device=None):
+def run_training(args=None, device=None, data_df=None):
     """Execute Multimodal Fusion training with hardcoded or user-supplied arguments."""
     if args is None:
         args = FusionArgs()
@@ -763,7 +780,13 @@ def run_training(args=None, device=None):
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
     config_choice = getattr(args, "config", "both_concat")
-    configs_to_run = FUSION_CONFIGS if config_choice == "all" else [config_choice]
+    if isinstance(config_choice, (list, tuple)):
+        configs_to_run = list(config_choice)
+    elif config_choice == "all":
+        configs_to_run = FUSION_CONFIGS
+    else:
+        configs_to_run = [config_choice]
+
     seeds = list(getattr(args, "seeds", [0, 1, 2]))
 
     print(f"Device: {str(device).upper()}")
@@ -771,7 +794,9 @@ def run_training(args=None, device=None):
     print(f"Seeds: {seeds}")
     print(f"Hyperparameters: {cfg}")
 
-    if is_valid_image is not None:
+    if data_df is not None:
+        print(f"Preprocessing integration: using preprocessed DataFrame ({len(data_df)} records).")
+    elif is_valid_image is not None:
         data_dir = cfg["data_dir"]
         raw_train = load_jsonl("train", data_dir=str(data_dir))
         corrupt = [
@@ -788,7 +813,7 @@ def run_training(args=None, device=None):
     for cname in configs_to_run:
         f1_list, acc_list = [], []
         for s in seeds:
-            f1, acc = train_seed(cname, s, cfg, device=device)
+            f1, acc = train_seed(cname, s, cfg, device=device, data_df=data_df)
             f1_list.append(f1)
             acc_list.append(acc)
 

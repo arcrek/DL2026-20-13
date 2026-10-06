@@ -7,6 +7,7 @@ if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
 from models.fusion import (  # noqa: F401
+    FUSION_CONFIGS,
     ConcatFusionModel,
     CrossAttentionFusionModel,
     FusionArgs,
