@@ -32,13 +32,13 @@ Huấn luyện thành công 3 seeds [0, 1, 2] trên tập dữ liệu Memotion 7
 
 | Run | Seed | Best Epoch (Holdout) | Holdout Macro-F1 | Test Macro-F1 | Test Accuracy | Status |
 |---|---|---|---|---|---|---|
-| `both_cross_attn_seed0` | 0 | 4 | 0.3541 | 0.3073 | 0.4157 | ✅ Completed |
-| `both_cross_attn_seed1` | 1 | 3 | 0.3498 | 0.3284 | 0.4143 | ✅ Completed |
-| `both_cross_attn_seed2` | 2 | 4 | 0.3512 | 0.3208 | 0.4029 | ✅ Completed |
+| `both_cross_attn_seed0` | 0 | 4 | 0.3478 | 0.3443 | 0.4771 | ✅ Completed |
+| `both_cross_attn_seed1` | 1 | 5 | 0.3272 | 0.3302 | 0.3971 | ✅ Completed |
+| `both_cross_attn_seed2` | 2 | 2 | 0.3186 | 0.3061 | 0.5286 | ✅ Completed |
 
 **Tổng hợp:**
-- **Test Macro-F1:** $0.3189 \pm 0.0087$
-- **Test Accuracy:** $0.4110 \pm 0.0058$
+- **Test Macro-F1:** $0.3269 \pm 0.0158$
+- **Test Accuracy:** $0.4676 \pm 0.0541$
 
 ---
 

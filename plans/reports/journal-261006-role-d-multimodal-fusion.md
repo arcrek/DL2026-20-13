@@ -44,9 +44,9 @@ All three multimodal fusion configurations across all three required seeds ($3 \
 | Model Config | Seed 0 | Seed 1 | Seed 2 | Macro-F1 (mean ± std) | Accuracy (mean ± std) |
 |---|---|---|---|---|---|
 | `text` (Unimodal Baseline) | 0.3283 | 0.2988 | 0.3677 | 0.3316 ± 0.0282 | 0.4319 ± 0.0849 |
-| **`both_concat` (Late Concat)** | 0.3112 | 0.3253 | 0.3212 | **0.3192 ± 0.0059** | 0.4262 ± 0.0141 |
-| **`both_cross_attn` (Cross-Attention)** | 0.3073 | 0.3284 | 0.3208 | **0.3189 ± 0.0087** | 0.4110 ± 0.0058 |
-| **`both_product` (Product Fusion)** | 0.3233 | 0.3507 | 0.3161 | **0.3301 ± 0.0149** | **0.4433 ± 0.0315** |
+| **`both_concat` (Late Concat)** | 0.3289 | 0.3495 | 0.3322 | **0.3369 ± 0.0090** | 0.4267 ± 0.0199 |
+| **`both_cross_attn` (Cross-Attention)** | 0.3443 | 0.3302 | 0.3061 | 0.3269 ± 0.0158 | **0.4676 ± 0.0541** |
+| **`both_product` (Product Fusion)** | 0.3193 | 0.3206 | 0.3231 | 0.3210 ± 0.0016 | 0.4086 ± 0.0135 |
 
 ---
 
