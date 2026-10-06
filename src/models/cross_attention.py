@@ -101,7 +101,7 @@ def evaluate(model, loader, device, loss_fn=None):
         mask = batch["attention_mask"].to(device)
         labels = batch["labels"].to(device)
 
-        with torch.autocast("cuda", dtype=autocast_dtype, enabled=(device == "cuda")):
+        with torch.autocast("cuda", dtype=autocast_dtype, enabled=(str(device).startswith("cuda"))):
             logits = model(pixel_values=pixel_values, input_ids=input_ids, attention_mask=mask)
             if loss_fn is not None:
                 loss = loss_fn(logits.float(), labels)
@@ -152,7 +152,7 @@ def train_epoch(model, loader, loss_fn, optimizer, scheduler, device, epoch_idx,
         labels = batch["labels"].to(device)
 
         optimizer.zero_grad()
-        with torch.autocast("cuda", dtype=autocast_dtype, enabled=(device == "cuda")):
+        with torch.autocast("cuda", dtype=autocast_dtype, enabled=(str(device).startswith("cuda"))):
             logits = model(pixel_values=pixel_values, input_ids=input_ids, attention_mask=mask)
             loss = loss_fn(logits.float(), labels)
 
@@ -162,7 +162,7 @@ def train_epoch(model, loader, loss_fn, optimizer, scheduler, device, epoch_idx,
         scheduler.step()
         total_loss += loss.item()
 
-        log_interval = 15 if device == "cpu" else 30
+        log_interval = 15 if str(device) == "cpu" else 30
         if step % log_interval == 0 or step == total_batches:
             pct = (step / total_batches) * 100
             print(
@@ -257,6 +257,7 @@ def train_loop(seed, cfg, device="cuda", data_df=None):
     best_epoch = -1
     best_state = None
 
+    print(f"\n=== Training [both_cross_attn] Seed {seed} on {str(device).upper()} ===")
     for ep in range(cfg["epochs"]):
         avg_loss = train_epoch(model, fit_loader, loss_fn, optimizer, scheduler, device, ep, cfg["epochs"], seed)
         eval_ho = evaluate(model, holdout_loader, device, loss_fn)

@@ -502,7 +502,7 @@ def evaluate_split(model, loader, device):
             if (torch.cuda.is_available() and hasattr(torch.cuda, "is_bf16_supported") and torch.cuda.is_bf16_supported())
             else torch.float16
         )
-        with torch.autocast("cuda", dtype=autocast_dtype, enabled=(device == "cuda")):
+        with torch.autocast("cuda", dtype=autocast_dtype, enabled=(str(device).startswith("cuda"))):
             logits = model(pixel_values=pixel_values, input_ids=input_ids, attention_mask=mask)
 
         probs = torch.softmax(logits.float(), dim=-1).cpu().numpy()
@@ -625,7 +625,7 @@ def train_seed(config_name, seed, cfg, device="cuda", data_df=None):
     best_state = None
 
     total_batches = len(fit_loader)
-    print(f"\n=== Training [{config_name}] Seed {seed} on {device.upper()} ===")
+    print(f"\n=== Training [{config_name}] Seed {seed} on {str(device).upper()} ===")
     for ep in range(cfg["epochs"]):
         model.train()
         total_loss = 0.0
@@ -641,7 +641,7 @@ def train_seed(config_name, seed, cfg, device="cuda", data_df=None):
                 if (torch.cuda.is_available() and hasattr(torch.cuda, "is_bf16_supported") and torch.cuda.is_bf16_supported())
                 else torch.float16
             )
-            with torch.autocast("cuda", dtype=autocast_dtype, enabled=(device == "cuda")):
+            with torch.autocast("cuda", dtype=autocast_dtype, enabled=(str(device).startswith("cuda"))):
                 logits = model(pixel_values=pixel_values, input_ids=input_ids, attention_mask=mask)
                 loss = loss_fn(logits.float(), labels)
 
@@ -651,7 +651,7 @@ def train_seed(config_name, seed, cfg, device="cuda", data_df=None):
             scheduler.step()
             total_loss += loss.item()
 
-            log_interval = 15 if device == "cpu" else 30
+            log_interval = 15 if str(device) == "cpu" else 30
             if step % log_interval == 0 or step == total_batches:
                 pct = (step / total_batches) * 100
                 print(
