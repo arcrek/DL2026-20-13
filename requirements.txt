@@ -1,6 +1,7 @@
 numpy
 pillow
 torch
+torchvision
 transformers
 huggingface_hub
 scikit-learn
@@ -8,3 +9,4 @@ pyarrow
 pyyaml
 pandas
 matplotlib
+seaborn

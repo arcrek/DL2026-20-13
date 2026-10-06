@@ -5,3 +5,13 @@ features/
 __pycache__/
 /plans/
 /docs/
+.pytest_cache/
+*:Zone.Identifier
+
+# LaTeX build artifacts
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
