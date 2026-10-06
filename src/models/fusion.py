@@ -48,13 +48,22 @@ TEXT_MODEL_NAME = "bert-base-uncased"
 FUSION_CONFIGS = ["both_concat", "both_cross_attn", "both_product"]
 
 
+try:
+    from preprocessing import LABEL2ID, is_valid_image, normalize_sentiment
+except ImportError:
+    LABEL2ID = {"negative": 0, "neutral": 1, "positive": 2}
+    is_valid_image = None
+    normalize_sentiment = None
+
+
 def safe_open_image(path):
     """Safely open and convert an image to RGB, returning fallback if corrupt."""
     try:
         if path and os.path.exists(path):
-            img = Image.open(path)
-            img.load()
-            return img.convert("RGB")
+            with Image.open(path) as img:
+                img.verify()
+            with Image.open(path) as img:
+                return img.convert("RGB")
     except Exception:
         pass
     return Image.new("RGB", (224, 224), (128, 128, 128))
@@ -72,14 +81,38 @@ class MultimodalMemeDataset(Dataset):
 
     def __getitem__(self, idx):
         r = self.rows[idx]
-        img_rel = r.get("img", "")
-        img_path = os.path.join(self.data_dir, img_rel) if self.data_dir else img_rel
+        # Resolve image path supporting raw JSONL ('img') and preprocessed DataFrame ('image_path')
+        if "image_path" in r and r["image_path"]:
+            img_path = str(r["image_path"])
+        else:
+            img_rel = str(r.get("img", ""))
+            img_path = (
+                os.path.join(self.data_dir, img_rel)
+                if self.data_dir and not os.path.isabs(img_rel)
+                else img_rel
+            )
+
+        # Support integer label, string label_name, or normalize raw label
+        if "label" in r and r["label"] is not None:
+            label = int(r["label"])
+        elif "label_name" in r and r["label_name"] in LABEL2ID:
+            label = LABEL2ID[r["label_name"]]
+        elif "raw_sentiment" in r and normalize_sentiment:
+            norm = normalize_sentiment(r["raw_sentiment"])
+            label = LABEL2ID.get(norm, 1)
+        else:
+            label = 1
+
+        text = str(r.get("text", r.get("text_corrected", "")))
+        sample_id = str(r.get("id", idx))
+        sarcasm = str(r.get("sarcasm", "not_sarcastic"))
+
         return {
-            "id": str(r["id"]),
+            "id": sample_id,
             "img_path": img_path,
-            "text": str(r.get("text", "")),
-            "label": int(r["label"]),
-            "sarcasm": str(r.get("sarcasm", "not_sarcastic")),
+            "text": text,
+            "label": label,
+            "sarcasm": sarcasm,
         }
 
 
@@ -662,50 +695,99 @@ def train_seed(config_name, seed, cfg, device="cuda"):
     return test_eval["macro_f1"], test_eval["acc"]
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Multimodal Fusion Trainer for Memotion 7k")
-    parser.add_argument(
-        "--config",
-        choices=FUSION_CONFIGS + ["all"],
-        default="all",
-        help="Fusion configuration to train ('both_concat', 'both_cross_attn', 'both_product', or 'all')",
-    )
-    parser.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2], help="Random seeds")
-    parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
-    parser.add_argument("--batch", type=int, default=16, help="Batch size for training")
-    parser.add_argument("--eval-batch", type=int, default=32, help="Batch size for evaluation")
-    parser.add_argument("--lr-backbone", type=float, default=1.5e-5, help="Learning rate for BERT backbone")
-    parser.add_argument("--lr-head", type=float, default=5e-4, help="Learning rate for fusion head")
-    parser.add_argument("--max-length", type=int, default=128, help="Max token length for text")
-    parser.add_argument("--workers", type=int, default=2, help="DataLoader worker processes")
-    parser.add_argument("--unfreeze-image", action="store_true", help="Unfreeze ResNet50 backbone")
-    args = parser.parse_args()
+class FusionArgs:
+    """Hardcoded arguments and hyperparameters for Multimodal Fusion models."""
+
+    def __init__(
+        self,
+        config="both_concat",
+        seeds=(0, 1, 2),
+        epochs=5,
+        batch_size=16,
+        eval_batch_size=32,
+        lr_backbone=1.5e-5,
+        lr_head=5e-4,
+        max_length=128,
+        workers=2,
+        dropout=0.2,
+        weight_decay=0.01,
+        freeze_image=True,
+        data_dir=DATA_DIR,
+        holdout_file=None,
+        results_dir=None,
+    ):
+        self.config = config
+        self.seeds = list(seeds)
+        self.epochs = epochs
+        self.batch_size = batch_size
+        self.batch = batch_size
+        self.eval_batch_size = eval_batch_size
+        self.eval_batch = eval_batch_size
+        self.lr_backbone = lr_backbone
+        self.lr_head = lr_head
+        self.max_length = max_length
+        self.workers = workers
+        self.dropout = dropout
+        self.weight_decay = weight_decay
+        self.freeze_image = freeze_image
+        self.data_dir = data_dir
+        self.holdout_file = holdout_file or os.path.join(FEATURE_DIR, "train_holdout.json")
+        self.results_dir = results_dir or os.environ.get("RESULTS_DIR", RESULTS_DIR)
+
+
+def run_training(args=None, device=None):
+    """Execute Multimodal Fusion training with hardcoded or user-supplied arguments."""
+    if args is None:
+        args = FusionArgs()
+    elif isinstance(args, dict):
+        args = FusionArgs(**args)
 
     cfg = {
-        "epochs": args.epochs,
-        "batch": args.batch,
-        "eval_batch": args.eval_batch,
-        "lr_backbone": args.lr_backbone,
-        "lr_head": args.lr_head,
-        "max_length": args.max_length,
-        "workers": args.workers,
-        "dropout": 0.2,
-        "weight_decay": 0.01,
-        "freeze_image": not args.unfreeze_image,
+        "epochs": getattr(args, "epochs", 5),
+        "batch": getattr(args, "batch_size", getattr(args, "batch", 16)),
+        "eval_batch": getattr(args, "eval_batch_size", getattr(args, "eval_batch", 32)),
+        "lr_backbone": getattr(args, "lr_backbone", 1.5e-5),
+        "lr_head": getattr(args, "lr_head", 5e-4),
+        "max_length": getattr(args, "max_length", 128),
+        "workers": getattr(args, "workers", 2),
+        "dropout": getattr(args, "dropout", 0.2),
+        "weight_decay": getattr(args, "weight_decay", 0.01),
+        "freeze_image": getattr(args, "freeze_image", True),
+        "data_dir": getattr(args, "data_dir", DATA_DIR),
+        "feature_dir": os.path.dirname(getattr(args, "holdout_file", os.path.join(FEATURE_DIR, "train_holdout.json"))),
+        "holdout_file": getattr(args, "holdout_file", os.path.join(FEATURE_DIR, "train_holdout.json")),
+        "results_dir": getattr(args, "results_dir", RESULTS_DIR),
     }
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    configs_to_run = FUSION_CONFIGS if args.config == "all" else [args.config]
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    print(f"Device: {device.upper()}")
+    config_choice = getattr(args, "config", "both_concat")
+    configs_to_run = FUSION_CONFIGS if config_choice == "all" else [config_choice]
+    seeds = list(getattr(args, "seeds", [0, 1, 2]))
+
+    print(f"Device: {str(device).upper()}")
     print(f"Configurations to run: {configs_to_run}")
-    print(f"Seeds: {args.seeds}")
+    print(f"Seeds: {seeds}")
     print(f"Hyperparameters: {cfg}")
+
+    if is_valid_image is not None:
+        data_dir = cfg["data_dir"]
+        raw_train = load_jsonl("train", data_dir=str(data_dir))
+        corrupt = [
+            r["id"]
+            for r in raw_train
+            if not is_valid_image(r.get("image_path", os.path.join(data_dir, r.get("img", ""))))
+        ]
+        if corrupt:
+            print(f"Notice: {len(corrupt)} corrupted/missing images identified via preprocessing filter.")
+        else:
+            print(f"Data verification: All {len(raw_train)} training images validated successfully.")
 
     summary = {}
     for cname in configs_to_run:
         f1_list, acc_list = [], []
-        for s in args.seeds:
+        for s in seeds:
             f1, acc = train_seed(cname, s, cfg, device=device)
             f1_list.append(f1)
             acc_list.append(acc)
@@ -726,6 +808,35 @@ def main():
         print(f"[{cname}]")
         print(f"  Macro-F1 per seed: {res['f1_per_seed']} => mean: {res['f1_mean']:.4f} ± {res['f1_std']:.4f}")
         print(f"  Accuracy per seed: {res['acc_per_seed']} => mean: {res['acc_mean']:.4f} ± {res['acc_std']:.4f}")
+
+    return summary
+
+
+def main(args=None):
+    if args is not None:
+        return run_training(args)
+
+    if len(sys.argv) > 1 and any(arg.startswith("--") for arg in sys.argv[1:]):
+        parser = argparse.ArgumentParser(description="Multimodal Fusion Trainer for Memotion 7k")
+        parser.add_argument(
+            "--config",
+            choices=FUSION_CONFIGS + ["all"],
+            default="all",
+            help="Fusion configuration to train ('both_concat', 'both_cross_attn', 'both_product', or 'all')",
+        )
+        parser.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2], help="Random seeds")
+        parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
+        parser.add_argument("--batch", type=int, default=16, help="Batch size for training")
+        parser.add_argument("--eval-batch", type=int, default=32, help="Batch size for evaluation")
+        parser.add_argument("--lr-backbone", type=float, default=1.5e-5, help="Learning rate for BERT backbone")
+        parser.add_argument("--lr-head", type=float, default=5e-4, help="Learning rate for fusion head")
+        parser.add_argument("--max-length", type=int, default=128, help="Max token length for text")
+        parser.add_argument("--workers", type=int, default=2, help="DataLoader worker processes")
+        parser.add_argument("--unfreeze-image", action="store_true", help="Unfreeze ResNet50 backbone")
+        parsed_args = parser.parse_args()
+        return run_training(parsed_args)
+    else:
+        return run_training(FusionArgs())
 
 
 if __name__ == "__main__":

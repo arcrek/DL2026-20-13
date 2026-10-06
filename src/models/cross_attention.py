@@ -34,6 +34,23 @@ from models.fusion import (
 )
 from results import RESULTS_DIR, save_results
 
+try:
+    from preprocessing import is_valid_image
+except ImportError:
+    from PIL import Image
+
+    def is_valid_image(path):
+        if not path or not os.path.exists(str(path)):
+            return False
+        try:
+            with Image.open(str(path)) as img:
+                img.verify()
+            with Image.open(str(path)) as img:
+                img.convert("RGB")
+            return True
+        except Exception:
+            return False
+
 CONFIG_NAME = "both_cross_attn"
 
 
@@ -157,7 +174,7 @@ def train_epoch(model, loader, loss_fn, optimizer, scheduler, device, epoch_idx,
     return total_loss / total_batches
 
 
-def train_loop(seed, cfg, device="cuda"):
+def train_loop(seed, cfg, device="cuda", data_df=None):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -172,10 +189,27 @@ def train_loop(seed, cfg, device="cuda"):
         ho = json.load(f)
 
     data_dir = cfg.get("data_dir", DATA_DIR)
-    train_rows = {r["id"]: r for r in load_jsonl("train", data_dir=data_dir)}
-    fit_rows = [train_rows[i] for i in ho["fit"]]
-    holdout_rows = [train_rows[i] for i in ho["holdout"]]
+
+    if data_df is not None:
+        records = data_df.to_dict("records")
+        train_rows = {str(r.get("id", i)): r for i, r in enumerate(records)}
+    else:
+        train_rows = {r["id"]: r for r in load_jsonl("train", data_dir=data_dir)}
+
+    fit_rows = [train_rows[i] for i in ho["fit"] if i in train_rows]
+    holdout_rows = [train_rows[i] for i in ho["holdout"] if i in train_rows]
     test_rows = load_jsonl("test", data_dir=data_dir)
+
+    # Preprocessing integrity check: filter corrupted/missing images
+    if is_valid_image is not None:
+        bad_fit = [
+            r["id"]
+            for r in fit_rows
+            if not is_valid_image(r.get("image_path", os.path.join(data_dir, r.get("img", ""))))
+        ]
+        if bad_fit:
+            print(f"[Cross-Attn | Seed {seed}] Preprocessing: filtered {len(bad_fit)} corrupted/missing images from fit set.")
+            fit_rows = [r for r in fit_rows if r["id"] not in bad_fit]
 
     class_weights = torch.tensor(ho["class_weights"], dtype=torch.float)
 
@@ -279,55 +313,147 @@ def train_loop(seed, cfg, device="cuda"):
     return test_eval["macro_f1"], test_eval["acc"]
 
 
-train_seed = train_loop
+class CrossAttentionArgs:
+    """Hardcoded arguments and hyperparameters for Cross-Attention Multimodal Fusion (Role D)."""
+
+    def __init__(
+        self,
+        seeds=(0, 1, 2),
+        epochs=5,
+        batch_size=16,
+        eval_batch_size=32,
+        lr_backbone=1.5e-5,
+        lr_head=5e-4,
+        max_length=128,
+        attn_dim=256,
+        num_heads=4,
+        dropout=0.2,
+        workers=2,
+        freeze_image=True,
+        weight_decay=0.01,
+        data_dir=DATA_DIR,
+        holdout_file=None,
+        results_dir=None,
+    ):
+        self.seeds = list(seeds)
+        self.epochs = epochs
+        self.batch_size = batch_size
+        self.batch = batch_size
+        self.eval_batch_size = eval_batch_size
+        self.eval_batch = eval_batch_size
+        self.lr_backbone = lr_backbone
+        self.lr_head = lr_head
+        self.max_length = max_length
+        self.attn_dim = attn_dim
+        self.num_heads = num_heads
+        self.dropout = dropout
+        self.workers = workers
+        self.freeze_image = freeze_image
+        self.weight_decay = weight_decay
+        self.data_dir = data_dir
+        self.holdout_file = holdout_file or os.path.join(FEATURE_DIR, "train_holdout.json")
+        self.results_dir = results_dir or os.environ.get("RESULTS_DIR", RESULTS_DIR)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Train Cross-Attention Multimodal Fusion model.")
-    parser.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
-    parser.add_argument("--epochs", type=int, default=5)
-    parser.add_argument("--batch", type=int, default=16)
-    parser.add_argument("--eval-batch", type=int, default=32)
-    parser.add_argument("--lr-backbone", type=float, default=1.5e-5)
-    parser.add_argument("--lr-head", type=float, default=5e-4)
-    parser.add_argument("--max-length", type=int, default=128)
-    parser.add_argument("--attn-dim", type=int, default=256)
-    parser.add_argument("--num-heads", type=int, default=4)
-    parser.add_argument("--dropout", type=float, default=0.2)
-    parser.add_argument("--workers", type=int, default=2)
-    parser.add_argument("--freeze-image", action="store_true", default=True)
-    args = parser.parse_args()
+def run_training(args=None, device=None, data_df=None):
+    """Execute Cross-Attention training pipeline with hardcoded or user-supplied arguments."""
+    if args is None:
+        args = CrossAttentionArgs()
+    elif isinstance(args, dict):
+        args = CrossAttentionArgs(**args)
 
     cfg = {
-        "epochs": args.epochs,
-        "batch": args.batch,
-        "eval_batch": args.eval_batch,
-        "lr_backbone": args.lr_backbone,
-        "lr_head": args.lr_head,
-        "max_length": args.max_length,
-        "attn_dim": args.attn_dim,
-        "num_heads": args.num_heads,
-        "dropout": args.dropout,
-        "workers": args.workers,
-        "freeze_image": args.freeze_image,
-        "weight_decay": 0.01,
+        "epochs": getattr(args, "epochs", 5),
+        "batch": getattr(args, "batch_size", getattr(args, "batch", 16)),
+        "eval_batch": getattr(args, "eval_batch_size", getattr(args, "eval_batch", 32)),
+        "lr_backbone": getattr(args, "lr_backbone", 1.5e-5),
+        "lr_head": getattr(args, "lr_head", 5e-4),
+        "max_length": getattr(args, "max_length", 128),
+        "attn_dim": getattr(args, "attn_dim", 256),
+        "num_heads": getattr(args, "num_heads", 4),
+        "dropout": getattr(args, "dropout", 0.2),
+        "workers": getattr(args, "workers", 2),
+        "freeze_image": getattr(args, "freeze_image", True),
+        "weight_decay": getattr(args, "weight_decay", 0.01),
+        "data_dir": getattr(args, "data_dir", DATA_DIR),
+        "feature_dir": os.path.dirname(getattr(args, "holdout_file", os.path.join(FEATURE_DIR, "train_holdout.json"))),
+        "holdout_file": getattr(args, "holdout_file", os.path.join(FEATURE_DIR, "train_holdout.json")),
+        "results_dir": getattr(args, "results_dir", RESULTS_DIR),
     }
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Device: {device.upper()}")
-    print(f"Config: {cfg}")
-    print(f"Seeds: {args.seeds}")
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    seeds = list(getattr(args, "seeds", [0, 1, 2]))
+    print(f"Device: {str(device).upper()}")
+    print("Cross-Attention Fusion Configuration (hardcoded arguments):")
+    for k, v in cfg.items():
+        print(f"  {k}: {v}")
+    print(f"Seeds: {seeds}")
+
+    # Data verification with preprocessing filter
+    data_dir = cfg["data_dir"]
+    if data_df is not None:
+        print(f"Preprocessing integration: using preprocessed DataFrame ({len(data_df)} records).")
+    else:
+        raw_train = load_jsonl("train", data_dir=str(data_dir))
+        corrupt = [
+            r["id"]
+            for r in raw_train
+            if not is_valid_image(r.get("image_path", os.path.join(data_dir, r.get("img", ""))))
+        ]
+        if corrupt:
+            print(f"Notice: {len(corrupt)} corrupted/missing images identified via preprocessing filter.")
+        else:
+            print(f"Data verification: All {len(raw_train)} training images validated successfully.")
 
     f1_list, acc_list = [], []
-    for s in args.seeds:
-        f1, acc = train_loop(s, cfg, device=device)
+    for s in seeds:
+        f1, acc = train_loop(s, cfg, device=device, data_df=data_df)
         f1_list.append(f1)
         acc_list.append(acc)
 
-    print(f"Cross-Attention Macro-F1 per seed: {[round(x, 4) for x in f1_list]}")
-    print(f"Cross-Attention Accuracy per seed: {[round(x, 4) for x in acc_list]}")
-    print(f"Macro-F1 mean: {np.mean(f1_list):.4f} +/- {np.std(f1_list):.4f}")
-    print(f"Accuracy mean: {np.mean(acc_list):.4f} +/- {np.std(acc_list):.4f}")
+    print("\n" + "=" * 60)
+    print("CROSS-ATTENTION MULTIMODAL FUSION TRAINING COMPLETED")
+    print("=" * 60)
+    print(f"Macro-F1 per seed: {[round(x, 4) for x in f1_list]}")
+    print(f"Accuracy per seed: {[round(x, 4) for x in acc_list]}")
+    print(f"Macro-F1 mean +/- std: {np.mean(f1_list):.4f} +/- {np.std(f1_list):.4f}")
+    print(f"Accuracy mean +/- std: {np.mean(acc_list):.4f} +/- {np.std(acc_list):.4f}")
+
+    return {
+        "f1_list": f1_list,
+        "acc_list": acc_list,
+        "f1_mean": float(np.mean(f1_list)),
+        "f1_std": float(np.std(f1_list)),
+        "acc_mean": float(np.mean(acc_list)),
+        "acc_std": float(np.std(acc_list)),
+    }
+
+
+def main(args=None):
+    """Entry point supporting both CLI parsing and hardcoded argument execution."""
+    if args is not None:
+        return run_training(args)
+
+    if len(sys.argv) > 1 and any(arg.startswith("--") for arg in sys.argv[1:]):
+        parser = argparse.ArgumentParser(description="Train Cross-Attention Multimodal Fusion model.")
+        parser.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
+        parser.add_argument("--epochs", type=int, default=5)
+        parser.add_argument("--batch", type=int, default=16)
+        parser.add_argument("--eval-batch", type=int, default=32)
+        parser.add_argument("--lr-backbone", type=float, default=1.5e-5)
+        parser.add_argument("--lr-head", type=float, default=5e-4)
+        parser.add_argument("--max-length", type=int, default=128)
+        parser.add_argument("--attn-dim", type=int, default=256)
+        parser.add_argument("--num-heads", type=int, default=4)
+        parser.add_argument("--dropout", type=float, default=0.2)
+        parser.add_argument("--workers", type=int, default=2)
+        parser.add_argument("--freeze-image", action="store_true", default=True)
+        parsed_args = parser.parse_args()
+        return run_training(parsed_args)
+    else:
+        return run_training(CrossAttentionArgs())
 
 
 if __name__ == "__main__":

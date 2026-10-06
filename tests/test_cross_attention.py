@@ -4,10 +4,12 @@ import sys
 import tempfile
 import numpy as np
 import pytest
-import torch
+
+torch = pytest.importorskip("torch")
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from models.cross_attention import (  # noqa: E402
+    CrossAttentionArgs,
     CrossAttentionFusionModel,
     MultimodalMemeDataset,
     ResNet50Backbone,
@@ -84,9 +86,48 @@ def test_cross_attn_results_schema():
         assert 0.0 <= res["accuracy"] <= 1.0
 
 
+def test_cross_attention_args_defaults():
+    args = CrossAttentionArgs()
+    assert args.seeds == [0, 1, 2]
+    assert args.epochs == 5
+    assert args.batch_size == 16
+    assert args.eval_batch_size == 32
+    assert args.lr_backbone == 1.5e-5
+    assert args.lr_head == 5e-4
+    assert args.attn_dim == 256
+    assert args.num_heads == 4
+    assert args.workers == 2
+    assert args.freeze_image is True
+    assert "memotion" in args.data_dir
+
+
+def test_cross_attention_args_custom():
+    args = CrossAttentionArgs(seeds=[0], epochs=1, batch_size=8, attn_dim=128, num_heads=2)
+    assert args.seeds == [0]
+    assert args.epochs == 1
+    assert args.batch_size == 8
+    assert args.attn_dim == 128
+    assert args.num_heads == 2
+
+
+def test_multimodal_dataset_preprocessed_records():
+    rows = [
+        {"id": "clean_001", "image_path": "dummy.png", "text": "clean text", "label_name": "positive", "label": 2},
+        {"id": "clean_002", "image_path": "dummy2.png", "text": "neutral post", "label_name": "neutral", "label": 1},
+    ]
+    ds = MultimodalMemeDataset(rows)
+    assert len(ds) == 2
+    assert ds[0]["img_path"] == "dummy.png"
+    assert ds[0]["text"] == "clean text"
+    assert ds[0]["label"] == 2
+
+
 if __name__ == "__main__":
     test_resnet50_backbone_shapes()
     test_cross_attention_forward_shapes()
     test_multimodal_dataset_and_collate()
     test_cross_attn_results_schema()
+    test_cross_attention_args_defaults()
+    test_cross_attention_args_custom()
+    test_multimodal_dataset_preprocessed_records()
     print("ALL CROSS-ATTENTION TESTS PASSED")

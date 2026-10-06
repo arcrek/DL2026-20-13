@@ -10,8 +10,9 @@ import sys
 from types import SimpleNamespace
 
 import pytest
-import torch
-from torch import nn
+
+torch = pytest.importorskip("torch")
+from torch import nn  # noqa: E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 import models.fusion as fusion  # noqa: E402
@@ -382,6 +383,15 @@ def test_fuse_features_exact_math_and_gradients(cls, kwargs):
             for p in module.parameters():
                 if p.requires_grad:
                     assert p.grad is not None and torch.isfinite(p.grad).all()
+
+
+def test_fusion_args():
+    args = fusion.FusionArgs()
+    assert args.config == "both_concat"
+    assert args.seeds == [0, 1, 2]
+    assert args.epochs == 5
+    assert args.batch_size == 16
+    assert args.workers == 2
 
 
 if __name__ == "__main__":
