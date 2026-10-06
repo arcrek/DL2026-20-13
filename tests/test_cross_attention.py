@@ -122,6 +122,21 @@ def test_multimodal_dataset_preprocessed_records():
     assert ds[0]["label"] == 2
 
 
+def test_cross_attn_public_api_and_exports():
+    import cross_attn
+    import models.cross_attention as mca
+
+    assert hasattr(cross_attn, "CrossAttentionArgs")
+    assert hasattr(cross_attn, "train_seed")
+    assert hasattr(cross_attn, "train_loop")
+    assert hasattr(cross_attn, "evaluate_split")
+    assert hasattr(cross_attn, "run_training")
+    assert callable(cross_attn.train_seed)
+    assert cross_attn.train_seed is mca.train_seed
+    assert cross_attn.CrossAttentionArgs is mca.CrossAttentionArgs
+    assert cross_attn.CrossAttentionFusionModel is mca.CrossAttentionFusionModel
+
+
 if __name__ == "__main__":
     test_resnet50_backbone_shapes()
     test_cross_attention_forward_shapes()
@@ -130,4 +145,6 @@ if __name__ == "__main__":
     test_cross_attention_args_defaults()
     test_cross_attention_args_custom()
     test_multimodal_dataset_preprocessed_records()
+    test_cross_attn_public_api_and_exports()
     print("ALL CROSS-ATTENTION TESTS PASSED")
+

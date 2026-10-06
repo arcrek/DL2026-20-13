@@ -313,6 +313,24 @@ def train_loop(seed, cfg, device="cuda", data_df=None):
     return test_eval["macro_f1"], test_eval["acc"]
 
 
+def train_seed(*args, **kwargs):
+    """Train Cross-Attention model for a single seed.
+
+    Supports signatures:
+    - train_seed(seed, cfg, device="cuda", data_df=None)
+    - train_seed(config_name, seed, cfg, device="cuda", data_df=None)
+    - train_seed(seed=0, cfg=cfg, ...)
+    """
+    if "config_name" in kwargs:
+        kwargs.pop("config_name")
+    if "config" in kwargs:
+        kwargs.pop("config")
+    if args and isinstance(args[0], str):
+        # First arg was config_name e.g. "both_cross_attn"
+        args = args[1:]
+    return train_loop(*args, **kwargs)
+
+
 class CrossAttentionArgs:
     """Hardcoded arguments and hyperparameters for Cross-Attention Multimodal Fusion (Role D)."""
 
