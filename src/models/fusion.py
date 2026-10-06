@@ -752,6 +752,49 @@ class FusionArgs:
         self.results_dir = results_dir or os.environ.get("RESULTS_DIR", RESULTS_DIR)
 
 
+class CrossAttentionArgs(FusionArgs):
+    """Hardcoded arguments and hyperparameters for Cross-Attention Multimodal Fusion (Role D)."""
+
+    def __init__(
+        self,
+        seeds=(0, 1, 2),
+        epochs=5,
+        batch_size=16,
+        eval_batch_size=32,
+        lr_backbone=1.5e-5,
+        lr_head=5e-4,
+        max_length=128,
+        attn_dim=256,
+        num_heads=4,
+        dropout=0.2,
+        workers=2,
+        freeze_image=True,
+        weight_decay=0.01,
+        data_dir=DATA_DIR,
+        holdout_file=None,
+        results_dir=None,
+    ):
+        super().__init__(
+            config="both_cross_attn",
+            seeds=seeds,
+            epochs=epochs,
+            batch_size=batch_size,
+            eval_batch_size=eval_batch_size,
+            lr_backbone=lr_backbone,
+            lr_head=lr_head,
+            max_length=max_length,
+            workers=workers,
+            dropout=dropout,
+            weight_decay=weight_decay,
+            freeze_image=freeze_image,
+            data_dir=data_dir,
+            holdout_file=holdout_file,
+            results_dir=results_dir,
+        )
+        self.attn_dim = attn_dim
+        self.num_heads = num_heads
+
+
 def run_training(args=None, device=None, data_df=None):
     """Execute Multimodal Fusion training with hardcoded or user-supplied arguments."""
     if args is None:

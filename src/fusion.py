@@ -9,6 +9,7 @@ if CURRENT_DIR not in sys.path:
 from models.fusion import (  # noqa: F401
     FUSION_CONFIGS,
     ConcatFusionModel,
+    CrossAttentionArgs,
     CrossAttentionFusionModel,
     FusionArgs,
     MultimodalMemeDataset,
