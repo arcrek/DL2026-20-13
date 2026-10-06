@@ -173,38 +173,41 @@ class ResNet50Backbone(nn.Module):
         return pooled, spatial
 
 
-class ConcatFusionModel(nn.Module):
-    """Branch 3A: Late Concat Fusion.
+class _PooledFusionBase(nn.Module):
+    """Lớp cơ sở dùng chung cho các mô hình kết hợp trích xuất đặc trưng pooled.
 
-    v_fused = [v_text (768), v_img (2048)] -> MLP -> 3 classes
+    Quản lý việc khởi tạo các encoder (BERT text + ResNet image), freeze trọng số,
+    trích xuất đặc trưng pooled (CLS và GAP), và phân tách các nhóm tham số
+    backbone / head phục vụ tối ưu hóa với learning rate phân tầng.
     """
+
+    _head_module_names = ()
 
     def __init__(
         self,
-        num_classes=NUM_CLASSES,
         text_model_name=TEXT_MODEL_NAME,
-        dropout=0.2,
         freeze_image=True,
         freeze_text=False,
     ):
         super().__init__()
+        # Backbone văn bản: BERT Base Uncased
         self.text_enc = AutoModel.from_pretrained(text_model_name)
+        # Backbone hình ảnh: ResNet50
         self.img_enc = ResNet50Backbone(pretrained=True, freeze=freeze_image)
 
         if freeze_text:
             for p in self.text_enc.parameters():
                 p.requires_grad = False
 
-        in_dim = self.text_enc.config.hidden_size + 2048  # 768 + 2048 = 2816
-        self.head = nn.Sequential(
-            nn.Dropout(dropout),
-            nn.Linear(in_dim, 512),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(512, num_classes),
-        )
+    def _encode_modalities(self, pixel_values, input_ids, attention_mask):
+        """Trích xuất đặc trưng pooled từ hai modality: CLS text và GAP image."""
+        text_out = self.text_enc(input_ids=input_ids, attention_mask=attention_mask)
+        v_text = text_out.last_hidden_state[:, 0, :]  # (Batch, hidden_size)
+        v_img, _ = self.img_enc(pixel_values)         # (Batch, 2048)
+        return v_text, v_img
 
     def backbone_params(self):
+        """Lấy danh sách tham số của backbone (BERT + ResNet) để gán learning rate nhỏ."""
         params = []
         for p in self.text_enc.parameters():
             if p.requires_grad:
@@ -215,24 +218,87 @@ class ConcatFusionModel(nn.Module):
         return params
 
     def head_params(self):
-        return [p for p in self.head.parameters() if p.requires_grad]
+        """Lấy danh sách tham số của head phân loại và các tầng chiếu riêng."""
+        params = []
+        for name in self._head_module_names:
+            module = getattr(self, name)
+            for p in module.parameters():
+                if p.requires_grad:
+                    params.append(p)
+        return params
+
+
+# =============================================================================
+# CẤU HÌNH 3A: LATE CONCATENATION FUSION (Mô hình kết hợp ghép nối)
+# =============================================================================
+class ConcatFusionModel(_PooledFusionBase):
+    """Nhánh 3A: Late Concat Fusion.
+
+    Nguyên lý:
+    - Text: BERT trích xuất vector [CLS] đại diện toàn câu -> (Batch, 768).
+    - Image: ResNet50 trích xuất vector GAP -> (Batch, 2048).
+    - Fusion: Nối trực tiếp 2 vector lại với nhau: [v_text, v_img] -> Kích thước: 768 + 2048 = 2816.
+    - Phân loại: Đi qua mạng MLP 2 tầng (Linear 2816->512 -> ReLU -> Dropout -> Linear 512->3).
+    """
+
+    _head_module_names = ("head",)
+
+    def __init__(
+        self,
+        num_classes=NUM_CLASSES,
+        text_model_name=TEXT_MODEL_NAME,
+        dropout=0.2,
+        freeze_image=True,
+        freeze_text=False,
+    ):
+        super().__init__(
+            text_model_name=text_model_name,
+            freeze_image=freeze_image,
+            freeze_text=freeze_text,
+        )
+
+        # Tổng số chiều sau khi ghép nối: 768 (BERT) + 2048 (ResNet) = 2816
+        in_dim = self.text_enc.config.hidden_size + 2048
+        # Đầu phân loại MLP (Classification Head)
+        self.head = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(in_dim, 512),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(512, num_classes),
+        )
+
+    def fuse_features(self, v_text, v_img):
+        """Ghép nối vector Text và Image dọc theo chiều đặc trưng."""
+        return torch.cat([v_text, v_img], dim=-1)
 
     def forward(self, pixel_values, input_ids, attention_mask):
-        text_out = self.text_enc(input_ids=input_ids, attention_mask=attention_mask)
-        v_text = text_out.last_hidden_state[:, 0, :]  # [CLS] token (B, 768)
+        # 1 & 2. Trích xuất đặc trưng text (CLS) và ảnh (GAP)
+        v_text, v_img = self._encode_modalities(pixel_values, input_ids, attention_mask)
 
-        v_img, _ = self.img_enc(pixel_values)  # (B, 2048)
+        # 3. Kết hợp bằng cách ghép nối (Concatenation) dọc theo chiều features (dim=-1)
+        fused = self.fuse_features(v_text, v_img)  # (Batch, 2816)
 
-        fused = torch.cat([v_text, v_img], dim=-1)  # (B, 2816)
+        # 4. Dự đoán điểm logits của 3 nhãn cảm xúc qua MLP
         logits = self.head(fused)
         return logits
 
 
-class ProductFusionModel(nn.Module):
-    """Ablation: Product Fusion.
+# =============================================================================
+# CẤU HÌNH ĐỐI CHỨNG: PRODUCT FUSION (Phép nhân Hadamard từng phần tử)
+# =============================================================================
+class ProductFusionModel(_PooledFusionBase):
+    """Mô hình Ablation: Product Fusion.
 
-    v_fused = Proj(v_text) * Proj(v_img) -> MLP -> 3 classes
+    Nguyên lý:
+    - Thay vì ghép nối, mô hình chiếu cả vector Text (768d) và vector Image (2048d)
+      về cùng một không gian đặc trưng có kích thước `proj_dim = 512`.
+    - Sau đó thực hiện nhân từng phần tử (Element-wise / Hadamard Product):
+      fused = LayerNorm(proj_text(v_text) * proj_img(v_img)).
+    - Kiểm tra giả thuyết: Liệu phép nhân tương quan có mang lại hiệu quả tốt hơn ghép nối thuần túy?
     """
+
+    _head_module_names = ("proj_text", "proj_img", "norm", "head")
 
     def __init__(
         self,
@@ -243,18 +309,19 @@ class ProductFusionModel(nn.Module):
         freeze_image=True,
         freeze_text=False,
     ):
-        super().__init__()
-        self.text_enc = AutoModel.from_pretrained(text_model_name)
-        self.img_enc = ResNet50Backbone(pretrained=True, freeze=freeze_image)
+        super().__init__(
+            text_model_name=text_model_name,
+            freeze_image=freeze_image,
+            freeze_text=freeze_text,
+        )
 
-        if freeze_text:
-            for p in self.text_enc.parameters():
-                p.requires_grad = False
-
+        # Các tầng tuyến tính chiếu Text và Ảnh về chung kích thước 512 chiều
         self.proj_text = nn.Linear(self.text_enc.config.hidden_size, proj_dim)
         self.proj_img = nn.Linear(2048, proj_dim)
+        # LayerNorm giúp ổn định độ phân tán giá trị sau khi nhân 2 vector
         self.norm = nn.LayerNorm(proj_dim)
 
+        # Đầu phân loại MLP
         self.head = nn.Sequential(
             nn.Dropout(dropout),
             nn.Linear(proj_dim, 256),
@@ -263,35 +330,18 @@ class ProductFusionModel(nn.Module):
             nn.Linear(256, num_classes),
         )
 
-    def backbone_params(self):
-        params = []
-        for p in self.text_enc.parameters():
-            if p.requires_grad:
-                params.append(p)
-        for p in self.img_enc.parameters():
-            if p.requires_grad:
-                params.append(p)
-        return params
-
-    def head_params(self):
-        head_p = (
-            list(self.proj_text.parameters())
-            + list(self.proj_img.parameters())
-            + list(self.norm.parameters())
-            + list(self.head.parameters())
-        )
-        return [p for p in head_p if p.requires_grad]
+    def fuse_features(self, v_text, v_img):
+        """Chiếu hai vector về cùng chiều, nhân Hadamard và chuẩn hóa LayerNorm."""
+        return self.norm(self.proj_text(v_text) * self.proj_img(v_img))
 
     def forward(self, pixel_values, input_ids, attention_mask):
-        text_out = self.text_enc(input_ids=input_ids, attention_mask=attention_mask)
-        v_text = text_out.last_hidden_state[:, 0, :]  # (B, 768)
+        # 1 & 2. Trích xuất vector text [CLS] và ảnh pooled
+        v_text, v_img = self._encode_modalities(pixel_values, input_ids, attention_mask)
 
-        v_img, _ = self.img_enc(pixel_values)  # (B, 2048)
+        # 3 & 4. Chiếu vector, nhân từng phần tử và chuẩn hóa qua LayerNorm
+        fused = self.fuse_features(v_text, v_img)  # (Batch, 512)
 
-        p_text = self.proj_text(v_text)
-        p_img = self.proj_img(v_img)
-        fused = self.norm(p_text * p_img)  # Hadamard product (B, proj_dim)
-
+        # 5. Phân loại qua MLP
         logits = self.head(fused)
         return logits
 
