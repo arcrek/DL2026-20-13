@@ -11,7 +11,7 @@ Tài liệu này xác định lộ trình nghiên cứu, triển khai và đánh
 | Giai đoạn | Nội dung chính | Trọng tâm kỹ thuật | Trạng thái | Executable Owner |
 | :--- | :--- | :--- | :---: | :--- |
 | **Phase 1** | Chuẩn bị & Tiền xử lý dữ liệu | Lọc template leakage, dùng `text_corrected`, chia hold-out | ✅ Hoàn thành | [`src/data.py`](file:///home/arcrek/workspace/dl2026/src/data.py), [`DATA.md`](file:///home/arcrek/workspace/dl2026/DATA.md) |
-| **Phase 2** | Triển khai 3 mô hình đối chứng | Text-only (BERT), Image-only (ResNet50), Both (Concat & Cross-Attn) | 🔄 Đang triển khai | [`src/finetune.py`](file:///home/arcrek/workspace/dl2026/src/finetune.py) |
+| **Phase 2** | Triển khai 3 mô hình đối chứng | Text-only (BERT), Image-only (ResNet50), Both (Concat & Cross-Attn) | 🔄 Đang triển khai | [`src/models/`](file:///home/arcrek/workspace/dl2026/src/models/) |
 | **Phase 3** | Đánh giá, Ablation & Error Analysis | Phân tích Sarcasm, Paired t-test, 20 ca lỗi định tính | ⏳ Chờ Phase 2 | [`plans/20261001-0830-meme-understanding-modality-study/phase-03-analysis.md`](file:///home/arcrek/workspace/dl2026/plans/20261001-0830-meme-understanding-modality-study/phase-03-analysis.md) |
 | **Phase 4** | Báo cáo, Notebook Colab & Nghiệm thu | Báo cáo 10-15 trang chuẩn rubric, demo inference | ⏳ Chờ Phase 3 | [`plans/20261001-0830-meme-understanding-modality-study/phase-04-deliverables.md`](file:///home/arcrek/workspace/dl2026/plans/20261001-0830-meme-understanding-modality-study/phase-04-deliverables.md) |
 
@@ -89,6 +89,6 @@ Tài liệu này xác định lộ trình nghiên cứu, triển khai và đánh
 ## 3. Bản đồ Điều hướng & Quyền quản lý (Navigation & Ownership)
 
 * **Quy chuẩn dữ liệu & Phân tách:** Quản lý tại [`DATA.md`](file:///home/arcrek/workspace/dl2026/DATA.md) và thực thi bởi [`src/data.py`](file:///home/arcrek/workspace/dl2026/src/data.py).
-* **Huấn luyện mô hình:** Thực thi tại [`src/finetune.py`](file:///home/arcrek/workspace/dl2026/src/finetune.py) (Fine-tuning BERT, ResNet, Cross-Attention).
+* **Huấn luyện mô hình:** Thực thi tại [`src/models/`](file:///home/arcrek/workspace/dl2026/src/models/) và các runner (như [`src/text.py`](file:///home/arcrek/workspace/dl2026/src/text.py), [`src/image.py`](file:///home/arcrek/workspace/dl2026/src/image.py)).
 * **Kế hoạch gốc:** [`plans/20261001-0830-meme-understanding-modality-study/plan.md`](file:///home/arcrek/workspace/dl2026/plans/20261001-0830-meme-understanding-modality-study/plan.md).
 * **Notebook tương tác:** [`notebooks/meme_understanding.ipynb`](file:///home/arcrek/workspace/dl2026/notebooks/meme_understanding.ipynb).
