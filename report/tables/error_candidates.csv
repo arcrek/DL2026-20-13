@@ -1,0 +1,21 @@
+id,category,gold,sarcasm,humor,text,image,both_concat,both_cross_attn,both_product,concat_confidence
+test_00239,Fusion hurts,1,general,very_funny,1,0,0,2,0,0.815293530623118
+test_00343,Fusion hurts,2,general,funny,2,1,1,1,1,0.6469816366831461
+test_00662,Fusion hurts,2,twisted_meaning,funny,2,2,1,1,1,0.6394634048144022
+test_00597,Fusion hurts,2,general,funny,2,2,1,1,2,0.6159197390079498
+test_00221,Fusion hurts,2,not_sarcastic,funny,2,1,1,1,1,0.6155522465705872
+test_00045,Fusion hurts,2,twisted_meaning,very_funny,2,2,1,1,1,0.6154791315396627
+test_00194,Fusion helps,2,not_sarcastic,very_funny,0,2,2,2,2,0.684221625328064
+test_00043,Fusion helps,1,general,not_funny,2,2,1,1,1,0.6478625138600668
+test_00506,Fusion helps,2,twisted_meaning,funny,1,2,2,2,2,0.6451316873232523
+test_00292,Fusion helps,2,very_twisted,hilarious,0,0,2,2,2,0.6332021752993265
+test_00228,Fusion helps,2,general,not_funny,1,2,2,1,2,0.6251208782196045
+test_00344,Fusion helps,1,not_sarcastic,funny,2,1,1,2,1,0.6250659028689066
+test_00423,All five wrong,1,general,funny,0,0,0,0,0,0.8512330253918966
+test_00557,All five wrong,1,not_sarcastic,funny,0,0,0,2,0,0.843216061592102
+test_00091,All five wrong,2,general,not_funny,0,0,0,0,0,0.8410190542538961
+test_00233,All five wrong,1,twisted_meaning,hilarious,0,2,0,0,0,0.7939372261365255
+test_00424,All five wrong,1,not_sarcastic,not_funny,0,2,0,2,2,0.7253341376781464
+test_00695,All five wrong,1,twisted_meaning,very_funny,2,2,2,2,2,0.6932351390520731
+test_00148,All five wrong,1,general,very_funny,2,2,0,2,2,0.6872515082359314
+test_00085,All five wrong,2,general,funny,1,1,1,1,1,0.6739750107129415
