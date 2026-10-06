@@ -74,9 +74,9 @@ Raw Memotion annotations classify sentiment across a 5-point scale (`very_positi
 
 $$
 y_{\text{norm}} = \begin{cases}
-\text{positive}, & y_{\text{raw}} \in \{\text{very\_positive}, \text{positive}, \text{pos}\} \\
+\text{positive}, & y_{\text{raw}} \in \{\text{very positive}, \text{positive}, \text{pos}\} \\
 \text{neutral},  & y_{\text{raw}} \in \{\text{neutral}, \text{neu}\} \\
-\text{negative}, & y_{\text{raw}} \in \{\text{very\_negative}, \text{negative}, \text{neg}\}
+\text{negative}, & y_{\text{raw}} \in \{\text{very negative}, \text{negative}, \text{neg}\}
 \end{cases}
 $$
 
